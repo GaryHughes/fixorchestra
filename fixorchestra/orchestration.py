@@ -31,12 +31,17 @@ class Code:
     # This class needs to be kept in sync with repository.Enum because fixaudit.py stores 
     # instances of these classes in Sets. Specifically both implementations have to be hashable 
     # and they have to be hashing the same thing.
-    def __init__(self, id, name, value, added, synopsis):
+    def __init__(self, id, name, value, synopsis, added, addedEP, updated, updatedEP, deprecated, deprecatedEP):
         self.id = id
         self.name = name
         self.value = value
-        self.added = added
         self.synopsis = synopsis
+        self.added = added
+        self.addedEP = addedEP
+        self.updated = updated
+        self.updatedEP = updatedEP
+        self.deprecated = deprecated
+        self.deprecatedEP = deprecatedEP
 
     def __hash__(self):
         return hash(self.value)
@@ -225,8 +230,13 @@ class Orchestration:
                     codeElement.get('id'),
                     codeElement.get('name'),
                     codeElement.get('value'),
+                    self.extract_synopsis(codeElement),
                     codeElement.get('added'),
-                    self.extract_synopsis(codeElement)
+                    codeElement.get('addedEP'),
+                    codeElement.get('updated'),
+                    codeElement.get('updatedEP'),
+                    codeElement.get('deprecated'),
+                    codeElement.get('deprecatedEP')
                 )
                 codes.append(code)
             code_set = CodeSet(
@@ -433,7 +443,19 @@ class Orchestration:
             code_set = ET.SubElement(code_sets, '{%s}codeSet' % (fixr_namespace), name=source.name, id=str(source.id), type=source.type)
             for source_code in source.codes:
                 # TODO sort attribute
-                code = ET.SubElement(code_set, '{%s}code' % (fixr_namespace), name=source_code.name, id=str(source_code.id), value=source_code.value, added=source_code.added or '')
+                code = ET.SubElement(code_set, '{%s}code' % (fixr_namespace), name=source_code.name, id=str(source_code.id), value=source_code.value)
+                if source_code.added:
+                    code.attrib["added"] = source_code.added
+                if source_code.addedEP:
+                    code.attrib["addedEP"] = source_code.addedEP
+                if source_code.updated:
+                    code.attrib["updated"] = source_code.updated
+                if source_code.updatedEP:
+                    code.attrib["updatedEP"] = source_code.updatedEP
+                if source_code.deprecated:
+                    code.attrib["deprecated"] = source_code.deprecated
+                if source_code.deprecatedEP:
+                    code.attrib["deprecatedEP"] = source_code.deprecatedEP
                 annotation = ET.SubElement(code, '{%s}annotation' % (fixr_namespace))
                 ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source_code.synopsis
             annotation = ET.SubElement(code_set, '{%s}annotation' % (fixr_namespace))

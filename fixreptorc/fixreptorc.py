@@ -70,7 +70,7 @@ if __name__ == '__main__':
     for source in repository.fields_by_tag.values():
         try:
             enum = repository.enums[source.id]
-            codes = [orc.Code(value.id * 1000 + index, value.symbolic_name, value.value, value.added, value.description) for index, value in enumerate(enum, start=1)]
+            codes = [orc.Code(value.id * 1000 + index, value.symbolic_name, value.value, value.description, value.added, value.addedEP, value.updated, value.updatedEP, value.deprecated, value.deprecatedEP) for index, value in enumerate(enum, start=1)]
             target = orc.CodeSet(source.id, source.name + 'CodeSet', source.type, source.description, codes)
             orchestration.code_sets[target.name] = target
         except KeyError:
