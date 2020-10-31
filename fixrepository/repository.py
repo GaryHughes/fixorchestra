@@ -70,7 +70,7 @@ class Repository:
     enums = {}          # Enum.tag -> [Enum]
     fields = {}         # Field.tag -> Field
     data_types = {}     # DataType.name -> DataType
-    components = {}     # Component.componentID -> Component
+    components = {}     # Component.Name -> Component
     msg_contents = {}   # MsgContent.componentID -> [MsgContent]
     messages = []       # [Message]
     messages_by_msg_type = {} # Message.msg_type -> Message
@@ -110,7 +110,7 @@ class Repository:
                 componentElement.find('Description').text,
                 componentElement.get('added')
             )
-            self.components[component.componentID] = component
+            self.components[component.name] = component
 
   
     def load_data_types(self, directory):
@@ -173,7 +173,7 @@ class Repository:
         fieldsElement = ET.parse(filename).getroot()
         for fieldElement in fieldsElement.findall('Field'):
             field = Field(
-                fieldElement.find('Tag').text,
+                int(fieldElement.find('Tag').text),
                 fieldElement.find('Name').text,
                 fieldElement.find('Type').text,
                 fieldElement.find('Description').text,
@@ -268,9 +268,24 @@ def dump_field(repository, tag):
     print("}")
 
 
-def dump_msg_contents(repository):
-    pass
-
+def dump_message_contents(repository, componentID, depth):
+    padding = '    ' * depth
+    try:
+        contents = repository.msg_contents[componentID]
+        for content in contents:
+            try:
+                tag = int(content.tagText)
+                field = repository.fields[tag]
+                print(padding + '{} (Tag = {}, Type = {}, Added = {}, Required = {})'.format(field.name, field.tag, field.type, field.added, content.reqd))
+            except ValueError:
+                component = repository.components[content.tagText]
+                print(padding + '{} {{'.format(component.name))
+                dump_message_contents(repository, component.componentID, depth + 1)
+                print(padding + '}')
+    except KeyError:
+        print("Can't find MsgContent with ComponentID = {}".format(componentID))
+        return
+    
 
 def dump_message(repository, msg_type):
     message = repository.messages_by_msg_type[msg_type]
@@ -282,7 +297,7 @@ def dump_message(repository, msg_type):
     print("    Added = " + message.added)
     print("    (" + message.description + ")")
     print("    MsgContents {")
-    #dump_msg_contents(repository, message.references, 2)
+    dump_message_contents(repository, message.componentID, 2)
     print("    }")
     print("}")
 
