@@ -98,13 +98,15 @@ class Message:
        
 class Orchestration:
 
-    data_types = {}
-    code_sets = {}
-    fields = {}
-    components = {}
-    groups = {}
-    messages = {}
-    messages_by_msgtype = {}
+    data_types = {}             # DataType.name -> DataType
+    code_sets = {}              # CodeSet.name -> CodeSet
+    fields_by_tag = {}          # Field.id -> Field
+    fields_by_name = {}         # Field.name.lower() -> Field
+    components = {}             # Componnet.id -> Component
+    groups = {}                 # Group.id -> Group
+    messages = {}               # Message.id -> Message
+    messages_by_msg_type = {}   # Message.msg_type -> Message
+    messages_by_name = {}       # Message.name.lower() -> Message
 
     def __init__(self, filename):
         self.filename = filename
@@ -122,7 +124,7 @@ class Orchestration:
         result = []
         for reference in references:
             if reference.field_id:
-                result.append((self.fields[reference.field_id], depth))
+                result.append((self.fields_by_tag[reference.field_id], depth))
             elif reference.group_id:
                 group = self.groups[reference.group_id]
                 result = result + self.references_to_fields(group.references, depth + 1)
@@ -225,7 +227,8 @@ class Orchestration:
                 fieldElement.get('added'),
                 self.extract_synopsis(fieldElement)
             )
-            self.fields[field.id] = field
+            self.fields_by_tag[field.id] = field
+            self.fields_by_name[field.name.lower()] = field
 
     def extract_references(self, element):
         references = []
@@ -341,11 +344,19 @@ class Orchestration:
                 self.extract_references(structureElement)
             )
             self.messages[message.id] = message
-            self.messages_by_msgtype[message.msg_type] = message
+            self.messages_by_msg_type[message.msg_type] = message
+            self.messages_by_name[message.name.lower()] = message
 
 
-def dump_field(orchestration, id):
-    field = orchestration.fields[id]
+def dump_field(orchestration, tag_or_name):
+    try:
+        field = orchestration.fields_by_tag[int(tag_or_name)]
+    except (KeyError, ValueError):
+        try:
+            field = orchestration.fields_by_name[tag_or_name.lower()]
+        except KeyError:
+            print("Could not find a field with Tag or Name = '{}'".format(tag_or_name))
+            return
     print(field.name + " {")
     print("    Id    = " + str(field.id))
     print("    Type  = " + field.type)
@@ -367,7 +378,7 @@ def dump_references(orchestration, references, depth):
     padding = '    ' * depth
     for reference in references:
         if reference.field_id:
-            field = orchestration.fields[reference.field_id]
+            field = orchestration.fields_by_tag[reference.field_id]
             print(padding + '{} (Id = {}, Type = {}, Added = {}, Presence = {})'.format(field.name, field.id, field.type, field.added, reference.presence))
         elif reference.group_id:
             group = orchestration.groups[reference.group_id]
@@ -382,8 +393,15 @@ def dump_references(orchestration, references, depth):
             pass
 
 
-def dump_message(orchestration, msg_type):
-    message = orchestration.messages_by_msgtype[msg_type]
+def dump_message(orchestration, msg_type_or_name):
+    try:
+        message = orchestration.messages_by_msg_type[msg_type_or_name]
+    except KeyError:
+        try:
+            message = orchestration.messages_by_name[msg_type_or_name.lower()]
+        except KeyError:
+            print("Could not find a message with MsgType or Name = '{}'".format(msg_type_or_name))
+            return
     print(message.name + " {")
     print("    Id = " + message.id)
     print("    MsgType = " + message.msg_type)
@@ -400,8 +418,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--orchestration', required=True, metavar='file', help='The orchestration to load')
-    parser.add_argument('--dump_field', required=False, metavar='tag' ,type=int, help='Display the definition of a field')
-    parser.add_argument('--dump_message', required=False, metavar='msgtype', help='Display the definition of a message')
+    parser.add_argument('--dump_field', required=False, metavar='(tag|name)' ,type=str, help='Display the definition of a field')
+    parser.add_argument('--dump_message', required=False, metavar='(msgtype|name)', help='Display the definition of a message')
   
     args = parser.parse_args()
 

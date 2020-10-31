@@ -18,12 +18,12 @@ if __name__ == '__main__':
     orchestration = Orchestration(args.orchestration)
     repository = Repository(args.repository)
 
-    print("Fields Orchestration = {} Repository = {}".format(len(orchestration.fields), len(repository.fields)))
+    print("Fields Orchestration = {} Repository = {}".format(len(orchestration.fields_by_tag), len(repository.fields_by_tag)))
     
     field_errors = []
-    for r_id, r_field in repository.fields.items():
+    for r_id, r_field in repository.fields_by_tag.items():
         try:
-            o_field = orchestration.fields[r_id]
+            o_field = orchestration.fields_by_tag[r_id]
             if o_field.name != r_field.name:
                 field_errors.append("field Id = {} has Name = '{}' in the repository and Name = '{}' in the orchestration".format(r_id, r_field.name, o_field.name))
             if o_field.added != r_field.added:
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     print("Messages Orchestration = {} Repository = {}".format(len(orchestration.messages), len(repository.messages)))
 
     message_errors = []
-    for msg_type, o_message in orchestration.messages_by_msgtype.items():
+    for msg_type, o_message in orchestration.messages_by_msg_type.items():
         r_message = repository.messages_by_msg_type[msg_type]
         if o_message.name != r_message.name:
             message_errors.append("message MsgType = {} has Name = '{}' in the repository and Name = '{}' in the orchestration".format(msg_type, r_message.name, o_message.name))

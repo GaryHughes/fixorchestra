@@ -73,13 +73,15 @@ class Message:
 
 class Repository:
 
-    enums = {}          # Enum.id -> [Enum]
-    fields = {}         # Field.id -> Field
-    data_types = {}     # DataType.name -> DataType
-    components = {}     # Component.Name -> Component
-    msg_contents = {}   # MsgContent.componentID -> [MsgContent]
-    messages = []       # [Message]
-    messages_by_msg_type = {} # Message.msg_type -> Message
+    enums = {}                  # Enum.id -> [Enum]
+    fields_by_tag = {}          # Field.id -> Field
+    fields_by_name = {}         # Field.name.lower() -> Field
+    data_types = {}             # DataType.name -> DataType
+    components = {}             # Component.Name -> Component
+    msg_contents = {}           # MsgContent.componentID -> [MsgContent]
+    messages = []               # [Message]
+    messages_by_msg_type = {}   # Message.msg_type -> Message
+    messages_by_name = {}       # Message.name.lower() -> Message
 
     def __init__(self, directory):
         if not os.path.exists(directory):
@@ -185,8 +187,8 @@ class Repository:
                 fieldElement.find('Description').text,
                 fieldElement.get('added')
             )
-            self.fields[field.id] = field
-
+            self.fields_by_tag[field.id] = field
+            self.fields_by_name[field.name.lower()] = field
 
     def load_messages(self, directory):
         # <Message added="FIX.2.7">
@@ -214,6 +216,7 @@ class Repository:
             )
             self.messages.append(message)
             self.messages_by_msg_type[message.msgType] = message
+            self.messages_by_name[message.name.lower()] = message
       
 
     def load_msg_contents(self, directory):
@@ -262,7 +265,7 @@ class Repository:
             for content in contents:
                 try:
                     id = int(content.tagText)
-                    field = self.fields[id]
+                    field = self.fields_by_tag[id]
                     fields.append((field, depth)) 
                 except ValueError:
                     component = self.components[content.tagText]
@@ -275,8 +278,15 @@ class Repository:
         return self.extract_fields(message.componentID, 0)
 
 
-def dump_field(repository, tag):
-    field = repository.fields[tag]
+def dump_field(repository, tag_or_name):
+    try:
+        field = repository.fields_by_tag[int(tag_or_name)]
+    except (KeyError, ValueError):
+        try:
+            field = repository.fields_by_name[tag_or_name.lower()]
+        except KeyError:
+            print("Could not find a field with Tag or Name = '{}'".format(tag_or_name))
+            return
     print(field.name + " {")
     print("    Id   = " + str(field.id))
     print("    Type  = " + field.type)
@@ -300,7 +310,7 @@ def dump_message_contents(repository, componentID, depth):
         for content in contents:
             try:
                 id = int(content.tagText)
-                field = repository.fields[id]
+                field = repository.fields_by_tag[id]
                 print(padding + '{} (Id = {}, Type = {}, Added = {}, Required = {})'.format(field.name, field.id, field.type, field.added, content.reqd))
             except ValueError:
                 component = repository.components[content.tagText]
@@ -312,8 +322,15 @@ def dump_message_contents(repository, componentID, depth):
         return
     
 
-def dump_message(repository, msg_type):
-    message = repository.messages_by_msg_type[msg_type]
+def dump_message(repository, msg_type_or_name):
+    try:
+        message = repository.messages_by_msg_type[msg_type_or_name]
+    except KeyError:
+        try:
+            message = repository.messages_by_name[msg_type_or_name.lower()]
+        except KeyError:
+            print("Could not find a message with MsgType or Name = '{}'".format(msg_type_or_name))
+            return
     print(message.name + " {")
     print("    ComponentId = " + message.componentID)
     print("    MsgType = " + message.msgType)
@@ -331,9 +348,9 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--repository', required=True, metavar='directory', help='A directory containing a repository to load e.g. fix_repository_2010_edition_20200402/FIX.4.4/Base')
-    parser.add_argument('--dump_field', required=False, metavar='tag', type=int, help='Display the definition of a field')
-    parser.add_argument('--dump_message', required=False, metavar='msgtype', help='Display the definition of a message')
-  
+    parser.add_argument('--dump_field', required=False, metavar='(tag|name)', type=str, help='Display the definition of a field (name is not case sensitive)')
+    parser.add_argument('--dump_message', required=False, metavar='(msgtype|name)', help='Display the definition of a message (name is not case sensitive')
+   
     args = parser.parse_args()
 
     repository = Repository(args.repository)

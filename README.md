@@ -3,14 +3,15 @@ FIX Orchestration parser and utilities
 
 ```
 $ ./orchestration.py --help
-usage: orchestration.py [-h] --orchestration file [--dump_field tag]
-                        [--dump_message msgtype]
+usage: orchestration.py [-h] --orchestration file [--dump_field (tag|name)]
+                        [--dump_message (msgtype|name)]
 
 optional arguments:
   -h, --help            show this help message and exit
   --orchestration file  The orchestration to load
-  --dump_field tag      Display the definition of a field
-  --dump_message msgtype
+  --dump_field (tag|name)
+                        Display the definition of a field
+  --dump_message (msgtype|name)
                         Display the definition of a message
 ```
 
@@ -97,19 +98,22 @@ ExecutionReport {
 ## fixrepository
 FIX Repository parser and utilities
 
-```sh
+```
 $ ./repository.py --help
-usage: repository.py [-h] --repository directory [--dump_field tag]
-                     [--dump_message msgtype]
+usage: repository.py [-h] --repository directory [--dump_field (tag|name)]
+                     [--dump_message (msgtype|name)]
 
 optional arguments:
   -h, --help            show this help message and exit
   --repository directory
                         A directory containing a repository to load e.g.
                         fix_repository_2010_edition_20200402/FIX.4.4/Base
-  --dump_field tag      Display the definition of a field
-  --dump_message msgtype
-                        Display the definition of a message
+  --dump_field (tag|name)
+                        Display the definition of a field (name is not case
+                        sensitive)
+  --dump_message (msgtype|name)
+                        Display the definition of a message (name is not case
+                        sensitive
 ```
 
 ```
