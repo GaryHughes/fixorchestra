@@ -57,6 +57,15 @@ if __name__ == '__main__':
         orchestration.fields_by_tag[target.id] = target
         orchestration.fields_by_name[target.name] = target
 
+    # messages
+    for source in repository.messages_by_msg_type.values():
+        references = []
+        # recursive search of repository.msg_contents starting wtih source.componentID
+        
+        target = orc.Message(source.componentID, source.name, source.msgType, source.categoryID, source.added, source.description, references)
+        orchestration.messages_by_msg_type[target.msg_type] = target
+        orchestration.messages_by_name[target.name] = target
+
     xml = orchestration.to_xml()
 
     ET.dump(indent(xml))

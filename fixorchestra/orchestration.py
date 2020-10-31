@@ -448,6 +448,25 @@ class Orchestration:
             ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
 
 
+    def create_xml_messages(self, root):
+        # <fixr:messages>
+        #   <fixr:message name="Heartbeat" id="1" msgType="0" category="Session" added="FIX.2.7" abbrName="Heartbeat">
+        #       <fixr:structure>
+        #           <fixr:componentRef id="1024" presence="required" added="FIX.2.7">
+        #               <fixr:annotation>
+        #                   <fixr:documentation>
+        #                       MsgType = 0
+        #                   </fixr:documentation>
+        #               </fixr:annotation>
+        #           </fixr:componentRef>
+        messages = ET.SubElement(root, '{%s}messages' % (fixr_namespace))
+        for source in self.messages_by_msg_type.values():
+            # TODO abbrName
+            message = ET.SubElement(messages, '{%s}message' % (fixr_namespace), name=source.name, id=source.id, msgType=source.msg_type, category=source.category, added=source.added)
+            structure = ET.SubElement(message, '{%s}structure' % (fixr_namespace))
+            
+
+
     def to_xml(self):
         # <?xml version="1.0" encoding="UTF-8"?>
         # <fixr:repository xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:functx="http://www.functx.com" xmlns:fixr="http://fixprotocol.io/2020/orchestra/repository" xmlns:dc="http://purl.org/dc/elements/1.1/" name="FIX.4.2" version="FIX.4.2" specUrl="http://www.fixprotocol.org/specifications/fix4.2spec" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -460,6 +479,7 @@ class Orchestration:
         self.create_xml_data_types(root)
         self.create_xml_code_sets(root)
         self.create_xml_fields(root)
+        self.create_xml_messages(root)
 
         return root
 
