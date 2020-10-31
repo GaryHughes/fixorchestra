@@ -21,16 +21,15 @@ if __name__ == '__main__':
     print("Fields Orchestration = {} Repository = {}".format(len(orchestration.fields), len(repository.fields)))
     
     field_errors = []
-    for r_tag, r_field in repository.fields.items():
+    for r_id, r_field in repository.fields.items():
         try:
-            # TODO - key orchestration.fields with an int as well
-            o_field = orchestration.fields[str(r_tag)]
+            o_field = orchestration.fields[r_id]
             if o_field.name != r_field.name:
-                field_errors.append("field Id = {} has Name = '{}' in the repository and Name = '{}' in the orchestration".format(r_tag, r_field.name, o_field.name))
+                field_errors.append("field Id = {} has Name = '{}' in the repository and Name = '{}' in the orchestration".format(r_id, r_field.name, o_field.name))
             if o_field.added != r_field.added:
-                field_errors.append("field Id = {} has Added = '{}' in the repository and Added = '{}' in the orchestration".format(r_tag, r_field.added, o_field.added))
+                field_errors.append("field Id = {} has Added = '{}' in the repository and Added = '{}' in the orchestration".format(r_id, r_field.added, o_field.added))
         except KeyError:
-            print("orchestration does not contain a field with Id = {}".format(r_tag))
+            print("orchestration does not contain a field with Id = {}".format(r_id))
     
     if len(field_errors) == 0:
         print("All fields have the same Name and Added values in the repository and the orchestration")
@@ -48,19 +47,24 @@ if __name__ == '__main__':
             message_errors.append("message MsgType = {} has Name = '{}' in the repository and Name = '{}' in the orchestration".format(msg_type, r_message.name, o_message.name))
         if o_message.added != r_message.added:
             message_errors.append("message MsgType = {} has Added = '{}' in the repository and Added = '{}' in the orchestration".format(msg_type, r_message.added, o_message.added))
-        o_fields = orchestration.message_fields(o_message)
-        r_fields = repository.message_fields(r_message)
+        o_fields = frozenset([field for field, indent in orchestration.message_fields(o_message)])
+        r_fields = frozenset([field for field, indent in repository.message_fields(r_message)])
         if len(o_fields) != len(r_fields):
             message_errors.append("message MsgType = {} has {} fields in the repository and {} fields in the orchestration".format(msg_type, len(r_fields), len(o_fields)))
-
-
+        o_extras = o_fields - r_fields
+        r_extras = r_fields - o_fields
+        if len(o_extras) > 0:
+            message_errors.append("message MsgType = {} orchestration has the following fields not in the corresponding repository message {}".format(msg_type, [ field.name for field in o_extras]))    
+        if len(r_extras) > 0:
+            message_errors.append("message MsgType = {} repository has the following fields not in the corresponding orchestration message {}".format(msg_type, [ field.name for field in r_extras]))    
+      
     if len(message_errors) == 0:
         print("All messages have the same Name values in the repository and the orchstration")
     else:
         print("The following {} discrepancies were found".format(len(message_errors)))
         for error in message_errors:
             print(error)
-
+          
 
 
 

@@ -14,8 +14,8 @@ class DataType:
 
 class Enum:
 
-    def __init__(self, tag, value, symbolicName, description, added):
-        self.tag = tag
+    def __init__(self, id, value, symbolicName, description, added):
+        self.id = id
         self.value = value
         self.symbolicName = symbolicName
         self.description = description
@@ -23,12 +23,18 @@ class Enum:
 
 class Field:
 
-    def __init__(self, tag, name, type, description, added):
-        self.tag = tag
+    def __init__(self, id, name, type, description, added):
+        self.id = id
         self.name = name
         self.type = type
         self.description = description
         self.added = added
+    
+    def __hash__(self):
+        return hash((self.id))
+
+    def __eq__(self, rhs):
+        return self.id == rhs.id
 
 class Component:
 
@@ -67,8 +73,8 @@ class Message:
 
 class Repository:
 
-    enums = {}          # Enum.tag -> [Enum]
-    fields = {}         # Field.tag -> Field
+    enums = {}          # Enum.id -> [Enum]
+    fields = {}         # Field.id -> Field
     data_types = {}     # DataType.name -> DataType
     components = {}     # Component.Name -> Component
     msg_contents = {}   # MsgContent.componentID -> [MsgContent]
@@ -147,16 +153,16 @@ class Repository:
         enumsElement = ET.parse(filename).getroot()
         for enumElement in enumsElement.findall('Enum'):
             enum = Enum(
-                enumElement.find('Tag').text,
+                int(enumElement.find('Tag').text),
                 enumElement.find('Value').text,
                 enumElement.find('SymbolicName').text,
                 enumElement.find('Description').text,
                 enumElement.get('added')
             )
             try:
-                self.enums[enum.tag].append(enum)
+                self.enums[enum.id].append(enum)
             except KeyError:
-                self.enums[enum.tag] = [enum]
+                self.enums[enum.id] = [enum]
         
 
     def load_fields(self, directory):
@@ -179,7 +185,7 @@ class Repository:
                 fieldElement.find('Description').text,
                 fieldElement.get('added')
             )
-            self.fields[field.tag] = field
+            self.fields[field.id] = field
 
 
     def load_messages(self, directory):
@@ -249,35 +255,35 @@ class Repository:
     def load_categories(self, directory):
         pass
 
-    def extract_fields(self, componentID):
+    def extract_fields(self, componentID, depth):
         fields = []
         try:
             contents = self.msg_contents[componentID]
             for content in contents:
                 try:
-                    tag = int(content.tagText)
-                    field = self.fields[tag]
-                    fields.append(field) 
+                    id = int(content.tagText)
+                    field = self.fields[id]
+                    fields.append((field, depth)) 
                 except ValueError:
                     component = self.components[content.tagText]
-                    fields += self.extract_fields(component.componentID)
+                    fields += self.extract_fields(component.componentID, depth + 1)
         except KeyError:
             print("Can't find MsgContent with ComponentID = {}".format(componentID))
         return fields
     
     def message_fields(self, message):
-        return self.extract_fields(message.componentID)
+        return self.extract_fields(message.componentID, 0)
 
 
 def dump_field(repository, tag):
     field = repository.fields[tag]
     print(field.name + " {")
-    print("    Tag   = " + field.tag)
+    print("    Id   = " + str(field.id))
     print("    Type  = " + field.type)
     print("    Added = " + field.added)
     print("    (" + field.description + ")")
     try:
-        enums = repository.enums[field.tag]
+        enums = repository.enums[field.id]
         print("    Values {")
         for enum in enums:
             print("        {} ({}, {}, {})".format(enum.value, enum.symbolicName, enum.added, enum.description))
@@ -293,9 +299,9 @@ def dump_message_contents(repository, componentID, depth):
         contents = repository.msg_contents[componentID]
         for content in contents:
             try:
-                tag = int(content.tagText)
-                field = repository.fields[tag]
-                print(padding + '{} (Tag = {}, Type = {}, Added = {}, Required = {})'.format(field.name, field.tag, field.type, field.added, content.reqd))
+                id = int(content.tagText)
+                field = repository.fields[id]
+                print(padding + '{} (Id = {}, Type = {}, Added = {}, Required = {})'.format(field.name, field.id, field.type, field.added, content.reqd))
             except ValueError:
                 component = repository.components[content.tagText]
                 print(padding + '{} {{'.format(component.name))
@@ -325,7 +331,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--repository', required=True, help='A directory containing a repository to load e.g. fix_repository_2010_edition_20200402/FIX.4.4/Base')
-    parser.add_argument('--dump_field', required=False, help='Display the content of a message')
+    parser.add_argument('--dump_field', required=False, type=int, help='Display the content of a message')
     parser.add_argument('--dump_message', required=False, help='Display the content of a message')
   
     args = parser.parse_args()

@@ -48,6 +48,13 @@ class Field:
         self.added = added
         self.synopsis = synopsis
 
+    def __hash__(self):
+        return hash((self.id))
+
+    def __eq__(self, rhs):
+        return self.id == rhs.id
+
+
 class Reference:
 
     def __init__(self, field_id, group_id, component_id, presence, added):
@@ -212,7 +219,7 @@ class Orchestration:
         fieldsElement = repository.find('fixr:fields', ns)
         for fieldElement in fieldsElement.findall('fixr:field', ns):
             field = Field(
-                fieldElement.get('id'),
+                int(fieldElement.get('id')),
                 fieldElement.get('name'),
                 fieldElement.get('type'),
                 fieldElement.get('added'),
@@ -225,7 +232,7 @@ class Orchestration:
         for refElement in list(element):
             if refElement.tag == '{{{}}}fieldRef'.format(ns['fixr']) or refElement.tag == '{{{}}}numInGroup'.format(ns['fixr']):
                 reference = Reference(
-                    refElement.get('id'),
+                    int(refElement.get('id')),
                     None,
                     None,
                     refElement.get("presence"),
@@ -340,7 +347,7 @@ class Orchestration:
 def dump_field(orchestration, id):
     field = orchestration.fields[id]
     print(field.name + " {")
-    print("    Id    = " + field.id)
+    print("    Id    = " + str(field.id))
     print("    Type  = " + field.type)
     print("    Added = " + field.added)
     print("    (" + field.synopsis + ")")
@@ -393,7 +400,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--orchestration', required=True, help='The orchestration to load')
-    parser.add_argument('--dump_field', required=False, help='Display the content of a message')
+    parser.add_argument('--dump_field', required=False, type=int, help='Display the content of a message')
     parser.add_argument('--dump_message', required=False, help='Display the content of a message')
   
     args = parser.parse_args()
