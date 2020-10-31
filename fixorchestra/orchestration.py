@@ -429,7 +429,23 @@ class Orchestration:
                 code = ET.SubElement(code_set, '{%s}code' % (fixr_namespace), name=source_code.name, id=str(source_code.id), value=source_code.value, added=source_code.added)
                 annotation = ET.SubElement(code, '{%s}annotation' % (fixr_namespace))
                 ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source_code.synopsis
-                
+
+
+    def create_xml_fields(self, root):
+        # <fixr:fields>
+		#   <fixr:field id="1" name="Account" type="String" added="FIX.2.7" abbrName="Acct">
+		# 	    <fixr:annotation>
+		# 		    <fixr:documentation purpose="SYNOPSIS">
+        #               Account mnemonic as agreed between buy and sell sides, e.g. broker and institution or investor/intermediary and fund manager.
+        #           </fixr:documentation>
+		# 	    </fixr:annotation>
+		#   </fixr:field>      
+        fields = ET.SubElement(root, '{%s}fields' % (fixr_namespace))
+        for source in self.fields_by_tag.values():
+            # TODO abbrName
+            field = ET.SubElement(fields, '{%s}field' % (fixr_namespace), id=str(source.id), name=source.name, type=source.type, added=source.added)
+            annotation = ET.SubElement(field, '{%s}annotation' % (fixr_namespace))
+            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
 
 
     def to_xml(self):
@@ -439,10 +455,12 @@ class Orchestration:
             ET.register_namespace(prefix, uri)
 
         root = ET.Element('{%s}repository' % (fixr_namespace))
+        
         self.create_xml_metadata(root)
         self.create_xml_data_types(root)
         self.create_xml_code_sets(root)
-      
+        self.create_xml_fields(root)
+
         return root
 
 

@@ -51,6 +51,12 @@ if __name__ == '__main__':
         except KeyError:
             pass
 
+    # fields
+    for source in repository.fields_by_tag.values():
+        target = orc.Field(source.id, source.name, source.type, source.added, source.description)
+        orchestration.fields_by_tag[target.id] = target
+        orchestration.fields_by_name[target.name] = target
+
     xml = orchestration.to_xml()
 
     ET.dump(indent(xml))
