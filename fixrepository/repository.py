@@ -73,6 +73,7 @@ class Repository:
     components = {}     # Component.componentID -> Component
     msg_contents = {}   # MsgContent.componentID -> [MsgContent]
     messages = []       # [Message]
+    messages_by_msg_type = {} # Message.msg_type -> Message
 
     def __init__(self, directory):
         if not os.path.exists(directory):
@@ -206,6 +207,7 @@ class Repository:
                 messageElement.get('added')
             )
             self.messages.append(message)
+            self.messages_by_msg_type[message.msgType] = message
       
 
     def load_msg_contents(self, directory):
@@ -266,8 +268,23 @@ def dump_field(repository, tag):
     print("}")
 
 
-def dump_message(repository, msg_type):
+def dump_msg_contents(repository):
     pass
+
+
+def dump_message(repository, msg_type):
+    message = repository.messages_by_msg_type[msg_type]
+    print(message.name + " {")
+    print("    ComponentId = " + message.componentID)
+    print("    MsgType = " + message.msgType)
+    print("    CategoryID = " + message.categoryID)
+    print("    SectionID = " + message.sectionID)
+    print("    Added = " + message.added)
+    print("    (" + message.description + ")")
+    print("    MsgContents {")
+    #dump_msg_contents(repository, message.references, 2)
+    print("    }")
+    print("}")
 
 
 if __name__ == '__main__':
