@@ -10,8 +10,8 @@ from fixrepository.repository import *
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--orchestration', required=True, help='The orchestration to load')
-    parser.add_argument('--repository', required=True, help='A directory containing a repository to load e.g. fix_repository_2010_edition_20200402/FIX.4.4/Base')
+    parser.add_argument('--orchestration', required=True, metavar='file', help='The orchestration to load')
+    parser.add_argument('--repository', required=True, metavar='directory', help='A directory containing a repository to load e.g. fix_repository_2010_edition_20200402/FIX.4.4/Base')
 
     args = parser.parse_args()
 
