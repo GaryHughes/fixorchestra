@@ -249,6 +249,25 @@ class Repository:
     def load_categories(self, directory):
         pass
 
+    def extract_fields(self, componentID):
+        fields = []
+        try:
+            contents = self.msg_contents[componentID]
+            for content in contents:
+                try:
+                    tag = int(content.tagText)
+                    field = self.fields[tag]
+                    fields.append(field) 
+                except ValueError:
+                    component = self.components[content.tagText]
+                    fields += self.extract_fields(component.componentID)
+        except KeyError:
+            print("Can't find MsgContent with ComponentID = {}".format(componentID))
+        return fields
+    
+    def message_fields(self, message):
+        return self.extract_fields(message.componentID)
+
 
 def dump_field(repository, tag):
     field = repository.fields[tag]
