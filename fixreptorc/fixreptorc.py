@@ -56,6 +56,9 @@ if __name__ == '__main__':
     repository = rep.Repository(args.repository)
     orchestration = orc.Orchestration()
 
+    # version
+    orchestration.version = repository.version
+
     # data types
     for source in repository.data_types.values():
         target = orc.DataType(source.name, source.base_type, source.added, source.description)
@@ -98,4 +101,5 @@ if __name__ == '__main__':
    
     xml = orchestration.to_xml()
 
+    print('<?xml version="1.0" encoding="UTF-8"?>')
     ET.dump(indent(xml))

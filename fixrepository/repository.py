@@ -94,6 +94,7 @@ class Repository:
     messages = []               # [Message]
     messages_by_msg_type = {}   # Message.msg_type -> Message
     messages_by_name = {}       # Message.name.lower() -> Message
+    version = ''
 
     def __init__(self, directory):
         if not os.path.exists(directory):
@@ -152,6 +153,8 @@ class Repository:
                 dataTypeElement.get('added')
             )
             self.data_types[dataType.name] = dataType
+        # This is present in all the files we parse so this is as good a place as any to get it.
+        self.version = dataTypesElement.attrib['version']
 
 
     def load_enums(self, directory):

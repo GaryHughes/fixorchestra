@@ -127,6 +127,7 @@ class Orchestration:
     messages = {}               # Message.id -> Message
     messages_by_msg_type = {}   # Message.msg_type -> Message
     messages_by_name = {}       # Message.name.lower() -> Message
+    version = ''
 
     def __init__(self, filename = None):
         if filename == None:
@@ -565,7 +566,10 @@ class Orchestration:
             ET.register_namespace(prefix, uri)
 
         root = ET.Element('{%s}repository' % (fixr_namespace))
-        
+
+        root.attrib['version'] = self.version
+        root.attrib['name'] = self.version
+
         self.create_xml_metadata(root)
         self.create_xml_data_types(root)
         self.create_xml_code_sets(root)
