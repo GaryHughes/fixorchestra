@@ -366,15 +366,15 @@ def dump_references(orchestration, references, depth):
     for reference in references:
         if reference.field_id:
             field = orchestration.fields[reference.field_id]
-            print(padding + '{} (Id = {}, Type = {}, Added = {})'.format(field.name, field.id, field.type, field.added))
+            print(padding + '{} (Id = {}, Type = {}, Added = {}, Presence = {})'.format(field.name, field.id, field.type, field.added, reference.presence))
         elif reference.group_id:
             group = orchestration.groups[reference.group_id]
-            print(padding + group.name + " (Id = {}, Category = {}, Added = {}) {{".format(group.id, group.category, group.added))
+            print(padding + group.name + " (Id = {}, Category = {}, Added = {}, Presence  = {}) {{".format(group.id, group.category, group.added, reference.presence))
             dump_references(orchestration, group.references, depth + 1)
             print(padding + "}")
         elif reference.component_id:
             component = orchestration.components[reference.component_id]
-            print(padding + component.name + " (Id = {}, Category = {}, Added = {}) {{".format(component.id, component.category, component.added))
+            print(padding + component.name + " (Id = {}, Category = {}, Added = {}, Presence = {}) {{".format(component.id, component.category, component.added, reference.presence))
             dump_references(orchestration, component.references, depth + 1)
             print(padding + "}")
             pass
