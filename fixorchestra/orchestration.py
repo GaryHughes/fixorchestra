@@ -74,7 +74,7 @@ class Field:
 
 class Reference:
 
-    def __init__(self, field_id, group_id, component_id, presence, added):
+    def __init__(self, field_id, group_id, component_id, presence, added, synopsis):
         #if field_id and group_id:
         #    raise Exception('A Reference cannot have both a field_id and a group_id')
         self.field_id = field_id
@@ -82,23 +82,26 @@ class Reference:
         self.component_id = component_id
         self.presence = presence
         self.added = added
+        self.synopsis = synopsis
 
 class Component:
 
-    def __init__(self, id, name, category, added, references):
+    def __init__(self, id, name, category, added, synopsis, references):
         self.id = id
         self.name = name
         self.category = category
         self.added = added
+        self.synopsis = synopsis
         self.references = references
 
 class Group:
 
-    def __init__(self, id, name, added, category, references):
+    def __init__(self, id, name, added, category, synopsis, references):
         self.id = id
         self.name = name
         self.added = added
         self.category = category
+        self.synopsis = synopsis
         self.references = references
 
 class Message:
@@ -264,7 +267,8 @@ class Orchestration:
                     None,
                     None,
                     refElement.get("presence"),
-                    refElement.get('added')
+                    refElement.get('added'),
+                    self.extract_synopsis(refElement)
                 )
                 references.append(reference)
             elif refElement.tag == '{{{}}}groupRef'.format(namespaces['fixr']):
@@ -273,7 +277,8 @@ class Orchestration:
                     refElement.get('id'),
                     None,
                     refElement.get("presence"),
-                    refElement.get('added')
+                    refElement.get('added'),
+                    self.extract_synopsis(refElement)
                 )
                 references.append(reference)
             elif refElement.tag == '{{{}}}componentRef'.format(namespaces['fixr']):
@@ -282,7 +287,8 @@ class Orchestration:
                     None,
                     refElement.get('id'),
                     refElement.get("presence"),
-                    refElement.get('added')
+                    refElement.get('added'),
+                    self.extract_synopsis(refElement)
                 )
                 references.append(reference)
             elif refElement.tag == '{{{}}}annotation'.format(namespaces['fixr']):
@@ -308,7 +314,8 @@ class Orchestration:
                 componentElement.get('id'), 
                 componentElement.get('name'), 
                 componentElement.get('category'), 
-                componentElement.get('added'), 
+                componentElement.get('added'),
+                self.extract_synopsis(componentElement),
                 self.extract_references(componentElement)
             )
             self.components[component.id] = component
@@ -340,6 +347,7 @@ class Orchestration:
                 groupElement.get('name'),
                 groupElement.get('added'),
                 groupElement.get('category'),
+                self.extract_synopsis(groupElement),
                 self.extract_references(groupElement)
             )
             self.groups[group.id] = group    
@@ -422,14 +430,14 @@ class Orchestration:
         code_sets = ET.SubElement(root, '{%s}codeSets' % (fixr_namespace))
         for source in self.code_sets.values():
             code_set = ET.SubElement(code_sets, '{%s}codeSet' % (fixr_namespace), name=source.name, id=str(source.id), type=source.type)
-            annotation = ET.SubElement(code_set, '{%s}annotation' % (fixr_namespace))
-            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
             for source_code in source.codes:
                 # TODO sort attribute
                 code = ET.SubElement(code_set, '{%s}code' % (fixr_namespace), name=source_code.name, id=str(source_code.id), value=source_code.value, added=source_code.added)
                 annotation = ET.SubElement(code, '{%s}annotation' % (fixr_namespace))
                 ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source_code.synopsis
-
+            annotation = ET.SubElement(code_set, '{%s}annotation' % (fixr_namespace))
+            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
+      
 
     def create_xml_fields(self, root):
         # <fixr:fields>
@@ -448,6 +456,80 @@ class Orchestration:
             ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
 
 
+    def create_xml_references(self, root, references):
+        #   <fixr:componentRef id="1024" presence="required" added="FIX.2.7">
+        #               <fixr:annotation>
+        #                   <fixr:documentation>
+        #                       MsgType = 0
+        #                   </fixr:documentation>
+        #               </fixr:annotation>
+        #           </fixr:componentRef>
+        #           <fixr:fieldRef id="64" added="FIX.2.7">
+	    #    		    <fixr:annotation>
+	    # 			    	<fixr:documentation>
+        #                       Required when SettlmntTyp = 6 (Future) or SettlmntTyp = 8 (Sellers Option)
+        #                   </fixr:documentation>
+	    # 				</fixr:annotation>
+	    # 			</fixr:fieldRef>
+        for reference in references:
+            if reference.field_id:
+                fieldRef = ET.SubElement(root, '{%s}fieldRef' % (fixr_namespace), id=str(reference.field_id), added=reference.added)
+                if reference.presence:
+                    fieldRef.attrib['presence'] = reference.presence
+                annotation = ET.SubElement(fieldRef, '{%s}annotation' % (fixr_namespace))
+                ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = reference.synopsis
+            elif reference.component_id:
+                componentRef = ET.SubElement(root, '{%s}componentRef' % (fixr_namespace), id=str(reference.component_id), added=reference.added)
+                if reference.presence:
+                    componentRef.attrib['presence'] = reference.presence
+                annotation = ET.SubElement(componentRef, '{%s}annotation' % (fixr_namespace))
+                ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = reference.synopsis
+            elif reference.group_id:
+                pass    
+
+
+    def create_xml_components(self, root):
+        # <fixr:component name="DiscretionInstructions" id="1001" category="Common" added="FIX.4.4" abbrName="DiscInstr">
+        #   <fixr:fieldRef id="388" added="FIX.4.4">
+        #       <fixr:annotation>
+        #           <fixr:documentation>
+        #               What the discretionary price is related to (e.g. primary price, display price etc)
+        #           </fixr:documentation>
+        #       </fixr:annotation>
+        #   </fixr:fieldRef>
+        components = ET.SubElement(root, '{%s}components' % (fixr_namespace))
+        for source in self.components.values():
+            # TODO abbrName
+            component = ET.SubElement(components, '{%s}component' % (fixr_namespace), name=source.name, id=str(source.id), category=source.category, added=source.added)
+            self.create_xml_references(component, source.references)
+            annotation = ET.SubElement(component, '{%s}annotation' % (fixr_namespace))
+            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
+         
+   
+    def create_xml_groups(self, root):
+        # <fixr:groups>
+        #   <fixr:group id="1007" added="FIX.4.4" name="LegStipulations" category="Common" abbrName="Stip">
+        #       <fixr:numInGroup id="683"/>
+        #       <fixr:fieldRef id="688" added="FIX.4.4">
+        #           <fixr:annotation>
+        #               <fixr:documentation>
+        #                   Required if NoLegStipulations &gt;0
+        #               </fixr:documentation>
+        #           </fixr:annotation>
+        #       </fixr:fieldRef>
+        #       <fixr:fieldRef id="689" added="FIX.4.4">
+        #           <fixr:annotation>
+        #               <fixr:documentation/>
+        #           </fixr:annotation>
+        #       </fixr:fieldRef>
+        #       <fixr:annotation>
+        #           <fixr:documentation/>
+        #       </fixr:annotation>
+        #    </fixr:group>
+        groups = ET.SubElement(root, '{%s}groups' % (fixr_namespace))
+
+
+
     def create_xml_messages(self, root):
         # <fixr:messages>
         #   <fixr:message name="Heartbeat" id="1" msgType="0" category="Session" added="FIX.2.7" abbrName="Heartbeat">
@@ -459,12 +541,21 @@ class Orchestration:
         #                   </fixr:documentation>
         #               </fixr:annotation>
         #           </fixr:componentRef>
+        #           <fixr:fieldRef id="64" added="FIX.2.7">
+	    #    		    <fixr:annotation>
+	    # 			    	<fixr:documentation>
+        #                       Required when SettlmntTyp = 6 (Future) or SettlmntTyp = 8 (Sellers Option)
+        #                   </fixr:documentation>
+	    # 				</fixr:annotation>
+	    # 			</fixr:fieldRef>
         messages = ET.SubElement(root, '{%s}messages' % (fixr_namespace))
         for source in self.messages_by_msg_type.values():
             # TODO abbrName
             message = ET.SubElement(messages, '{%s}message' % (fixr_namespace), name=source.name, id=source.id, msgType=source.msg_type, category=source.category, added=source.added)
             structure = ET.SubElement(message, '{%s}structure' % (fixr_namespace))
-            
+            self.create_xml_references(structure, source.references)
+            annotation = ET.SubElement(message, '{%s}annotation' % (fixr_namespace))
+            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
 
 
     def to_xml(self):
@@ -479,6 +570,8 @@ class Orchestration:
         self.create_xml_data_types(root)
         self.create_xml_code_sets(root)
         self.create_xml_fields(root)
+        self.create_xml_components(root)
+        self.create_xml_groups(root)
         self.create_xml_messages(root)
 
         return root
