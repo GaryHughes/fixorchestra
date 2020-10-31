@@ -377,17 +377,17 @@ class Repository:
             except KeyError:
                 if field.type == 'Length':
                     sys.stderr.writelines('Defining missing data type Length\n')
-                    data_type = DataType('Length', 'int', 'int field representing the length in bytes. Value must be positive.', 'FIX.4.3')
+                    data_type = DataType('Length', 'int', 'int field representing the length in bytes. Value must be positive.', Pedigree('FIX.4.3', '', '', '', '', ''))
                 elif field.type == 'MultipleValueString':
                     sys.stderr.writelines('Renaming data type MultipleValueString -> MultipleStringValue\n')
                     field.type = 'MultipleStringValue'
                     continue
                 elif field.type == 'Boolean':
                     sys.stderr.writelines('Definiing missing data type Boolean\n')
-                    data_type = DataType('Boolean', 'char', "char field containing one of two values: 'Y' = True/Yes 'N' = False/No", 'FIX.4.2')
+                    data_type = DataType('Boolean', 'char', "char field containing one of two values: 'Y' = True/Yes 'N' = False/No", Pedigree('FIX.4.2', '', '', '', '', ''))
                 elif field.type == 'DayOfMonth':
                     sys.stderr.writelines('Defining missing data type DayOfMonth\n')
-                    data_type = DataType('DayOfMonth', 'int', 'int field representing a day during a particular monthy (values 1 to 31).', 'FIX.4.1')
+                    data_type = DataType('DayOfMonth', 'int', 'int field representing a day during a particular monthy (values 1 to 31).', Pedigree('FIX.4.1', '', '', '', '', ''))
                 else:
                     raise Exception("Found a undefined data type '{}' that I dont know how to fix".format(field.type))
                 self.data_types[data_type.name] = data_type
