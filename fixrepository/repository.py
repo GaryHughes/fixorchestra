@@ -428,8 +428,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--repository', required=True, metavar='directory', help='A directory containing a repository to load e.g. fix_repository_2010_edition_20200402/FIX.4.4/Base')
-    parser.add_argument('--dump_field', required=False, metavar='(tag|name)', type=str, help='Display the definition of a field (name is not case sensitive)')
-    parser.add_argument('--dump_message', required=False, metavar='(msgtype|name)', help='Display the definition of a message (name is not case sensitive')
+    parser.add_argument('--dump-field', required=False, metavar='(tag|name)', type=str, help='Display the definition of a field (name is not case sensitive)')
+    parser.add_argument('--dump-message', required=False, metavar='(msgtype|name)', help='Display the definition of a message (name is not case sensitive')
     parser.add_argument('--list-messages', default=False, action='store_true', help='List all the messages in this repository')
     parser.add_argument('--list-fields', default=False, action='store_true', help='List all the fields in this repository')
 

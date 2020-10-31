@@ -16,20 +16,21 @@ FIX Orchestration parser and utilities
 
 ```
 $ ./orchestration.py --help
-usage: orchestration.py [-h] --orchestration file [--dump_field (tag|name)]
-                        [--dump_message (msgtype|name)]
+usage: orchestration.py [-h] --orchestration file [--dump-field (tag|name)] [--dump-message (msgtype|name)] [--list-messages] [--list-fields]
 
 optional arguments:
   -h, --help            show this help message and exit
   --orchestration file  The orchestration to load
-  --dump_field (tag|name)
+  --dump-field (tag|name)
                         Display the definition of a field
-  --dump_message (msgtype|name)
+  --dump-message (msgtype|name)
                         Display the definition of a message
+  --list-messages       List all the messages in this orchestration
+  --list-fields         List all the fields in this orchestration
 ```
 
 ```
-$ ./orchestration.py --orchestration FixRepository44.xml --dump_field 4
+$ ./orchestration.py --orchestration FixRepository44.xml --dump-field 4
 AdvSide {
     Id    = 4
     Type  = AdvSideCodeSet
@@ -44,7 +45,7 @@ AdvSide {
 }
 ```
 ```
-$ ./orchestration.py --orchestration FixRepository42.xml --dump_message 8
+$ ./orchestration.py --orchestration FixRepository42.xml --dump-message 8
 ExecutionReport {
     Id = 9
     MsgType = 8
@@ -113,24 +114,22 @@ FIX Repository parser and utilities
 
 ```
 $ ./repository.py --help
-usage: repository.py [-h] --repository directory [--dump_field (tag|name)]
-                     [--dump_message (msgtype|name)]
+usage: repository.py [-h] --repository directory [--dump-field (tag|name)] [--dump-message (msgtype|name)] [--list-messages] [--list-fields]
 
 optional arguments:
   -h, --help            show this help message and exit
   --repository directory
-                        A directory containing a repository to load e.g.
-                        fix_repository_2010_edition_20200402/FIX.4.4/Base
-  --dump_field (tag|name)
-                        Display the definition of a field (name is not case
-                        sensitive)
-  --dump_message (msgtype|name)
-                        Display the definition of a message (name is not case
-                        sensitive
+                        A directory containing a repository to load e.g. fix_repository_2010_edition_20200402/FIX.4.4/Base
+  --dump-field (tag|name)
+                        Display the definition of a field (name is not case sensitive)
+  --dump-message (msgtype|name)
+                        Display the definition of a message (name is not case sensitive
+  --list-messages       List all the messages in this repository
+  --list-fields         List all the fields in this repository
 ```
 
 ```
-$ ./repository.py --repository FIX.4.4/Base --dump_field 4
+$ ./repository.py --repository FIX.4.4/Base --dump-field 4
 AdvSide {
     Id   = 4
     Type  = char
@@ -146,7 +145,7 @@ AdvSide {
 ```
 
 ```
-$ ./repository.py --repository FIX.4.2/Base --dump_message 8
+$ ./repository.py --repository FIX.4.2/Base --dump-message 8
 ExecutionReport {
     ComponentId = 9
     MsgType = 8
