@@ -646,13 +646,25 @@ def dump_message(orchestration, msg_type_or_name):
     print("}")
 
 
+def list_messages(orchestration):
+    for message in orchestration.messages_by_msg_type.values():
+        print('{}\t{}'.format(message.msg_type, message.name))
+
+
+def list_fields(orchestration):
+    for field in orchestration.fields_by_tag.values():
+        print('{}\t{} ({})'.format(field.id, field.name, field.type))
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--orchestration', required=True, metavar='file', help='The orchestration to load')
-    parser.add_argument('--dump_field', required=False, metavar='(tag|name)' ,type=str, help='Display the definition of a field')
+    parser.add_argument('--dump_field', required=False, metavar='(tag|name)', type=str, help='Display the definition of a field')
     parser.add_argument('--dump_message', required=False, metavar='(msgtype|name)', help='Display the definition of a message')
-  
+    parser.add_argument('--list-messages', default=False, action='store_true', help='List all the messages in this orchestration')
+    parser.add_argument('--list-fields', default=False, action='store_true', help='List all the fields in this orchestration')
+
     args = parser.parse_args()
 
     orchestration = Orchestration(args.orchestration)
@@ -662,7 +674,12 @@ if __name__ == '__main__':
 
     if args.dump_message:
         dump_message(orchestration, args.dump_message)
-        
+
+    if args.list_messages:
+        list_messages(orchestration)
+
+    if args.list_fields:
+        list_fields(orchestration)
 
 
 

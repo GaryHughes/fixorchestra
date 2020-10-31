@@ -414,13 +414,25 @@ def dump_message(repository, msg_type_or_name):
     print("}")
 
 
+def list_messages(repository):
+    for message in repository.messages_by_msg_type.values():
+        print('{}\t{}'.format(message.msgType, message.name))
+
+
+def list_fields(repository):
+    for field in repository.fields_by_tag.values():
+        print('{}\t{} ({})'.format(field.id, field.name, field.type))
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--repository', required=True, metavar='directory', help='A directory containing a repository to load e.g. fix_repository_2010_edition_20200402/FIX.4.4/Base')
     parser.add_argument('--dump_field', required=False, metavar='(tag|name)', type=str, help='Display the definition of a field (name is not case sensitive)')
     parser.add_argument('--dump_message', required=False, metavar='(msgtype|name)', help='Display the definition of a message (name is not case sensitive')
-   
+    parser.add_argument('--list-messages', default=False, action='store_true', help='List all the messages in this repository')
+    parser.add_argument('--list-fields', default=False, action='store_true', help='List all the fields in this repository')
+
     args = parser.parse_args()
 
     repository = Repository(args.repository)
@@ -431,3 +443,8 @@ if __name__ == '__main__':
     if args.dump_message:
         dump_message(repository, args.dump_message)
 
+    if args.list_messages:
+        list_messages(repository)
+
+    if args.list_fields:
+        list_fields(repository)
