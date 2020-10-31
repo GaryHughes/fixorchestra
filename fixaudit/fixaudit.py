@@ -98,19 +98,19 @@ def visit_orchestration_references(orchetration, references, context, field_erro
             try:
                 field = orchestration.fields_by_tag[reference.field_id]
             except:
-                field_errors.append('{} contains a reference to field id={} that is not defined'.format(context, reference.field_id))
+                field_errors.append('{} references field id={} that is not defined'.format(context, reference.field_id))
         if reference.group_id:
             try:
                 group = orchestration.groups[reference.group_id]
                 visit_orchestration_references(orchestration, group.references, context + ' references group id={}'.format(group.id), field_errors, group_errors, component_errors)
             except KeyError:
-                group_errors.append('{} that contains a reference to group id={} that is not defined'.format(context, reference.group_id))
+                group_errors.append('{} that references group id={} that is not defined'.format(context, reference.group_id))
         if reference.component_id:
             try:
                 component = orchestration.components[reference.component_id]
                 visit_orchestration_references(orchetration, component.references, context + 'references component id={}'.format(component.id), field_errors, group_errors, component_errors)
             except KeyError:
-                component_errors.append('{} that contains a reference to component id={} that is not defined'.format(context, reference.component_id))
+                component_errors.append('{} that references component id={} that is not defined'.format(context, reference.component_id))
        
 
 
