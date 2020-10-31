@@ -11,7 +11,14 @@ def compare_repository_with_orchestration(repository, orchestration):
 
     print("Fields Orchestration = {} Repository = {}".format(len(orchestration.fields_by_tag), len(repository.fields_by_tag)))
     
-    
+    data_type_errors = []
+    # TODO
+
+    code_set_errors = []
+    # TODO
+
+    group_errors = []
+    # TODO
 
     field_errors = []
     for r_id, r_field in repository.fields_by_tag.items():
