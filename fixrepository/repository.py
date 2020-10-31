@@ -331,8 +331,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--repository', required=True, help='A directory containing a repository to load e.g. fix_repository_2010_edition_20200402/FIX.4.4/Base')
-    parser.add_argument('--dump_field', required=False, type=int, help='Display the content of a message')
-    parser.add_argument('--dump_message', required=False, help='Display the content of a message')
+    parser.add_argument('--dump_field', required=False, type=int, help='Display the definition of a field')
+    parser.add_argument('--dump_message', required=False, help='Display the definition of a message')
   
     args = parser.parse_args()
 
