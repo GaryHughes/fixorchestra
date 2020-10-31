@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import argparse
 import xml.etree.ElementTree as ET
 
 ns = { 
@@ -34,7 +35,7 @@ class CodeSet:
     def __init__(self, id, name, type, synopsis, codes):
         self.id = id
         self.name = name
-        self.tyoe = type
+        self.type = type
         self.synopsis = synopsis
         self.codes = codes
 
@@ -96,6 +97,7 @@ class Orchestration:
     components = {}
     groups = {}
     messages = {}
+    messages_by_msgtype = {}
 
     def __init__(self, filename):
         self.filename = filename
@@ -337,9 +339,78 @@ class Orchestration:
                 self.extract_references(structureElement)
             )
             self.messages[message.id] = message
+            self.messages_by_msgtype[message.msg_type] = message
 
 
-       
+def dump_field(orchestration, id):
+    field = orchestration.fields[id]
+    print(field.name + " {")
+    print("    Id    = " + field.id)
+    print("    Type  = " + field.type)
+    print("    Added = " + field.added)
+    print("    (" + field.synopsis + ")")
+    try:
+        code_set = orchestration.code_sets[field.type]
+        print("    Values {")
+        for code in code_set.codes:
+            name = code.name
+            print("        {} ({}, {}, {})".format(code.value, code.name, code.added, code.synopsis))
+        print("    }")
+    except KeyError:
+        pass
+    print("}")
 
-    
+
+def dump_references(orchestration, references, depth):
+    padding = '    ' * depth
+    for reference in references:
+        if reference.field_id:
+            field = orchestration.fields[reference.field_id]
+            print(padding + '{} (Id = {}, Type = {}, Added = {})'.format(field.name, field.id, field.type, field.added))
+        elif reference.group_id:
+            group = orchestration.groups[reference.group_id]
+            print(padding + group.name + " (Id = {}, Category = {}, Added = {}) {{".format(group.id, group.category, group.added))
+            dump_references(orchestration, group.references, depth + 1)
+            print(padding + "}")
+        elif reference.component_id:
+            component = orchestration.components[reference.component_id]
+            print(padding + component.name + " (Id = {}, Category = {}, Added = {}) {{".format(component.id, component.category, component.added))
+            dump_references(orchestration, component.references, depth + 1)
+            print(padding + "}")
+            pass
+
+
+def dump_message(orchestration, msg_type):
+    message = orchestration.messages_by_msgtype[msg_type]
+    print(message.name + " {")
+    print("    Id = " + message.id)
+    print("    MsgType = " + message.msg_type)
+    print("    Category = " + message.category)
+    print("    Added = " + message.added)
+    print("    (" + message.synopsis + ")")
+    print("    References {")
+    dump_references(orchestration, message.references, 2)
+    print("    }")
+    print("}")
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--orchestration', required=True, help='The orchestration to load')
+    parser.add_argument('--dump_field', required=False, help='Display the content of a message')
+    parser.add_argument('--dump_message', required=False, help='Display the content of a message')
+  
+    args = parser.parse_args()
+
+    orchestration = Orchestration(args.orchestration)
+
+    if args.dump_field:
+        dump_field(orchestration, args.dump_field)
+
+    if args.dump_message:
+        dump_message(orchestration, args.dump_message)
+        
+
+
 
