@@ -19,6 +19,19 @@ if __name__ == '__main__':
     repository = Repository(args.repository)
 
     print("Fields Orchestration = {} Repository = {}".format(len(orchestration.fields), len(repository.fields)))
-    print("Messages Orchestration = {} Repository = {}".format(len(orchestration.messages), len(repository.messages)))
+    
+    for r_tag, r_field in repository.fields.items():
+        try:
+            o_field = orchestration.fields[r_tag]
+            if o_field.name != r_field.name:
+                print("field Id = {} has Name = '{}' in the repository and Name = '{}' in the orchestration".format(r_tag, r_field.name, o_field.name))
+            if o_field.added != r_field.added:
+                print("field Id = {} has Added = '{}' in the repository and Added = '{}' in the orchestration".format(r_tag, r_field.added, o_field.added))
+        except KeyError:
+            print("orchestration does not contain a field with Id = {}".format(r_tag))
+
 
     
+    print("Messages Orchestration = {} Repository = {}".format(len(orchestration.messages), len(repository.messages)))
+
+
