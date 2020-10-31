@@ -18,30 +18,67 @@ namespaces = {
     'xsi'    : xsi_namespace 
 }
 
-class DataType:
+class Pedigree:
 
-    def __init__(self, name, base_type, added, synopsis):
-        self.name = name
-        self.base_type = base_type
-        self.added = added
-        self.synopsis = synopsis
-
-
-class Code:
-    # This class needs to be kept in sync with repository.Enum because fixaudit.py stores 
-    # instances of these classes in Sets. Specifically both implementations have to be hashable 
-    # and they have to be hashing the same thing.
-    def __init__(self, id, name, value, synopsis, added, addedEP, updated, updatedEP, deprecated, deprecatedEP):
-        self.id = id
-        self.name = name
-        self.value = value
-        self.synopsis = synopsis
+    def __init__(self, added, addedEP, updated, updatedEP, deprecated, deprecatedEP):
         self.added = added
         self.addedEP = addedEP
         self.updated = updated
         self.updatedEP = updatedEP
         self.deprecated = deprecated
         self.deprecatedEP = deprecatedEP
+
+    def __str__(self):
+        buffer = ''
+        if self.added:
+            buffer += 'added=' + self.added
+        if self.addedEP:
+            if len(buffer) > 0:
+                buffer += ', '
+            buffer += 'addedEP=' + self.addedEP
+        if self.updated:
+            if len(buffer) > 0:
+                buffer += ', '
+            buffer += 'updated=' + self.updated
+        if self.updatedEP:
+            if len(buffer) > 0:
+                buffer += ', '
+            buffer += 'updatedEP=' + self.updatedEP
+        if self.deprecated:
+            if len(buffer) > 0:
+                buffer += ', '
+            buffer += 'deprecated=' + self.deprecated
+        if self.deprecatedEP:
+            if len(buffer) > 0:
+                buffer += ', '
+            buffer += 'deprecatedEP=' + self.deprecatedEP
+        return '(' + buffer + ')'
+
+    def __eq__(self, rhs):
+        return self.added == rhs.added and self.addedEP == rhs.addedEP and self.updated == rhs.updated and self.updatedEP == rhs.updatedEP and self.deprecated == rhs.deprecated and self.deprecatedEP == rhs.deprecatedEP
+
+
+
+
+class DataType:
+
+    def __init__(self, name, base_type, synopsis, pedigree):
+        self.name = name
+        self.base_type = base_type
+        self.synopsis = synopsis
+        self.pedigree = pedigree
+
+
+class Code:
+    # This class needs to be kept in sync with repository.Enum because fixaudit.py stores 
+    # instances of these classes in Sets. Specifically both implementations have to be hashable 
+    # and they have to be hashing the same thing.
+    def __init__(self, id, name, value, synopsis, pedigree):
+        self.id = id
+        self.name = name
+        self.value = value
+        self.synopsis = synopsis
+        self.pedigree = pedigree
 
     def __hash__(self):
         return hash(self.value)
@@ -52,23 +89,24 @@ class Code:
 
 class CodeSet:
  
-    def __init__(self, id, name, type, synopsis, codes):
+    def __init__(self, id, name, type, synopsis, pedigree, codes):
         self.id = id
         self.name = name
         self.type = type
         self.synopsis = synopsis
+        self.pedigree = pedigree
         self.codes = codes
 
 class Field:
     # This class needs to be kept in sync with repository.Field because fixaudit.py stores 
     # nstances of these classes in Sets. Specifically both implementations have to be hashable 
     # and they have to be hashing the same thing.
-    def __init__(self, id, name, type, added, synopsis):
+    def __init__(self, id, name, type, synopsis, pedigree):
         self.id = id
         self.name = name
         self.type = type
-        self.added = added
         self.synopsis = synopsis
+        self.pedigree = pedigree
 
     def __hash__(self):
         return hash(self.id)
@@ -79,45 +117,45 @@ class Field:
 
 class Reference:
 
-    def __init__(self, field_id, group_id, component_id, presence, added, synopsis):
+    def __init__(self, field_id, group_id, component_id, presence, synopsis, pedigree):
         #if field_id and group_id:
         #    raise Exception('A Reference cannot have both a field_id and a group_id')
         self.field_id = field_id
         self.group_id = group_id
         self.component_id = component_id
         self.presence = presence
-        self.added = added
         self.synopsis = synopsis
+        self.pedigree = pedigree
 
 class Component:
 
-    def __init__(self, id, name, category, added, synopsis, references):
+    def __init__(self, id, name, category, synopsis, pedigree, references):
         self.id = id
         self.name = name
         self.category = category
-        self.added = added
         self.synopsis = synopsis
+        self.pedigree = pedigree
         self.references = references
 
 class Group:
 
-    def __init__(self, id, name, added, category, synopsis, references):
+    def __init__(self, id, name, category, synopsis, pedigree, references):
         self.id = id
         self.name = name
-        self.added = added
         self.category = category
         self.synopsis = synopsis
+        self.pedigree = pedigree
         self.references = references
 
 class Message:
 
-    def __init__(self, id, name, msg_type, category, added, synopsis, references):
+    def __init__(self, id, name, msg_type, category, synopsis, pedigree, references):
         self.id = id
         self.name = name
         self.msg_type = msg_type
         self.category = category
-        self.added = added
         self.synopsis = synopsis
+        self.pedigree = pedigree
         self.references = references
  
        
@@ -184,6 +222,16 @@ class Orchestration:
             return ''
         return documentation[0].text.strip()
   
+    
+    def extract_pedigree(self, element):
+        return Pedigree(
+            element.get('added'),
+            element.get('addedEP'),
+            element.get('updated'),
+            element.get('updatedEP'),
+            element.get('deprecated'),
+            element.get('deprecatedEP')
+        )
 
     def load_data_types(self, repository):
         # <fixr:datatypes>
@@ -206,8 +254,8 @@ class Orchestration:
             dataType = DataType(
                 dataTypeElement.get('name'),
                 dataTypeElement.get('baseType'),
-                dataTypeElement.get('added'),
-                self.extract_synopsis(dataTypeElement)
+                self.extract_synopsis(dataTypeElement),
+                self.extract_pedigree(dataTypeElement)
             )
             self.data_types[dataType.name] = dataType
         
@@ -231,12 +279,7 @@ class Orchestration:
                     codeElement.get('name'),
                     codeElement.get('value'),
                     self.extract_synopsis(codeElement),
-                    codeElement.get('added'),
-                    codeElement.get('addedEP'),
-                    codeElement.get('updated'),
-                    codeElement.get('updatedEP'),
-                    codeElement.get('deprecated'),
-                    codeElement.get('deprecatedEP')
+                    self.extract_pedigree(codeElement)
                 )
                 codes.append(code)
             code_set = CodeSet(
@@ -244,6 +287,7 @@ class Orchestration:
                 codeSetElement.get('name'),
                 codeSetElement.get('type'),
                 self.extract_synopsis(codeSetElement),
+                self.extract_pedigree(codeSetElement),
                 codes
             )
             self.code_sets[code_set.name] = code_set
@@ -263,8 +307,8 @@ class Orchestration:
                 int(fieldElement.get('id')),
                 fieldElement.get('name'),
                 fieldElement.get('type'),
-                fieldElement.get('added'),
-                self.extract_synopsis(fieldElement)
+                self.extract_synopsis(fieldElement),
+                self.extract_pedigree(fieldElement)
             )
             self.fields_by_tag[field.id] = field
             self.fields_by_name[field.name.lower()] = field
@@ -278,8 +322,8 @@ class Orchestration:
                     None,
                     None,
                     refElement.get("presence"),
-                    refElement.get('added'),
-                    self.extract_synopsis(refElement)
+                    self.extract_synopsis(refElement),
+                    self.extract_pedigree(refElement)
                 )
                 references.append(reference)
             elif refElement.tag == '{{{}}}groupRef'.format(namespaces['fixr']):
@@ -288,8 +332,8 @@ class Orchestration:
                     refElement.get('id'),
                     None,
                     refElement.get("presence"),
-                    refElement.get('added'),
-                    self.extract_synopsis(refElement)
+                    self.extract_synopsis(refElement),
+                    self.extract_pedigree(refElement)
                 )
                 references.append(reference)
             elif refElement.tag == '{{{}}}componentRef'.format(namespaces['fixr']):
@@ -298,8 +342,8 @@ class Orchestration:
                     None,
                     refElement.get('id'),
                     refElement.get("presence"),
-                    refElement.get('added'),
-                    self.extract_synopsis(refElement)
+                    self.extract_synopsis(refElement),
+                    self.extract_pedigree(refElement)
                 )
                 references.append(reference)
             elif refElement.tag == '{{{}}}annotation'.format(namespaces['fixr']):
@@ -325,8 +369,8 @@ class Orchestration:
                 componentElement.get('id'), 
                 componentElement.get('name'), 
                 componentElement.get('category'), 
-                componentElement.get('added'),
                 self.extract_synopsis(componentElement),
+                self.extract_pedigree(componentElement),
                 self.extract_references(componentElement)
             )
             self.components[component.id] = component
@@ -356,9 +400,9 @@ class Orchestration:
             group = Group(
                 groupElement.get('id'),
                 groupElement.get('name'),
-                groupElement.get('added'),
                 groupElement.get('category'),
                 self.extract_synopsis(groupElement),
+                self.extract_pedigree(groupElement),
                 self.extract_references(groupElement)
             )
             self.groups[group.id] = group    
@@ -383,8 +427,8 @@ class Orchestration:
                 messageElement.get('name'),
                 messageElement.get('msgType'),
                 messageElement.get('category'),
-                messageElement.get('added'),
                 self.extract_synopsis(messageElement),
+                self.extract_pedigree(messageElement),
                 self.extract_references(structureElement)
             )
             self.messages[message.id] = message
@@ -410,6 +454,21 @@ class Orchestration:
         ET.SubElement(metadata, '{%s}source' % (dc_namespace)).text = 'FIX Unified Repository'
 
 
+    def populate_xml_pedigree(self, element, pedigree):
+        if pedigree.added:
+            element.attrib["added"] = pedigree.added
+        if pedigree.addedEP:
+            element.attrib["addedEP"] = pedigree.addedEP
+        if pedigree.updated:
+            element.attrib["updated"] = pedigree.updated
+        if pedigree.updatedEP:
+            element.attrib["updatedEP"] = pedigree.updatedEP
+        if pedigree.deprecated:
+            element.attrib["deprecated"] = pedigree.deprecated
+        if pedigree.deprecatedEP:
+            element.attrib["deprecatedEP"] = pedigree.deprecatedEP
+
+
     def create_xml_data_types(self, root):
         # <fixr:datatypes>
         #   <fixr:datatype name="NumInGroup" baseType="int" added="FIX.4.3">
@@ -421,7 +480,8 @@ class Orchestration:
         #   </fixr:datatype>
         data_types = ET.SubElement(root, '{%s}datatypes' % (fixr_namespace))
         for source in self.data_types.values():
-            data_type = ET.SubElement(data_types, '{%s}datatype' % (fixr_namespace), name=source.name, added=source.added)
+            data_type = ET.SubElement(data_types, '{%s}datatype' % (fixr_namespace), name=source.name)
+            self.populate_xml_pedigree(data_type, source.pedigree)
             if source.base_type:
                 data_type.attrib['baseType'] = source.base_type
             annotation = ET.SubElement(data_type, '{%s}annotation' % (fixr_namespace))
@@ -444,18 +504,7 @@ class Orchestration:
             for source_code in source.codes:
                 # TODO sort attribute
                 code = ET.SubElement(code_set, '{%s}code' % (fixr_namespace), name=source_code.name, id=str(source_code.id), value=source_code.value)
-                if source_code.added:
-                    code.attrib["added"] = source_code.added
-                if source_code.addedEP:
-                    code.attrib["addedEP"] = source_code.addedEP
-                if source_code.updated:
-                    code.attrib["updated"] = source_code.updated
-                if source_code.updatedEP:
-                    code.attrib["updatedEP"] = source_code.updatedEP
-                if source_code.deprecated:
-                    code.attrib["deprecated"] = source_code.deprecated
-                if source_code.deprecatedEP:
-                    code.attrib["deprecatedEP"] = source_code.deprecatedEP
+                self.populate_xml_pedigree(code, source.pedigree)
                 annotation = ET.SubElement(code, '{%s}annotation' % (fixr_namespace))
                 ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source_code.synopsis
             annotation = ET.SubElement(code_set, '{%s}annotation' % (fixr_namespace))
@@ -474,7 +523,8 @@ class Orchestration:
         fields = ET.SubElement(root, '{%s}fields' % (fixr_namespace))
         for source in self.fields_by_tag.values():
             # TODO abbrName
-            field = ET.SubElement(fields, '{%s}field' % (fixr_namespace), id=str(source.id), name=source.name, type=source.type, added=source.added)
+            field = ET.SubElement(fields, '{%s}field' % (fixr_namespace), id=str(source.id), name=source.name, type=source.type)
+            self.populate_xml_pedigree(field, source.pedigree)
             annotation = ET.SubElement(field, '{%s}annotation' % (fixr_namespace))
             ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
 
@@ -496,13 +546,15 @@ class Orchestration:
 	    # 			</fixr:fieldRef>
         for reference in references:
             if reference.field_id:
-                fieldRef = ET.SubElement(root, '{%s}fieldRef' % (fixr_namespace), id=str(reference.field_id), added=reference.added)
+                fieldRef = ET.SubElement(root, '{%s}fieldRef' % (fixr_namespace), id=str(reference.field_id))
+                self.populate_xml_pedigree(fieldRef, reference.pedigree)
                 if reference.presence:
                     fieldRef.attrib['presence'] = reference.presence
                 annotation = ET.SubElement(fieldRef, '{%s}annotation' % (fixr_namespace))
                 ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = reference.synopsis
             elif reference.component_id:
-                componentRef = ET.SubElement(root, '{%s}componentRef' % (fixr_namespace), id=str(reference.component_id), added=reference.added)
+                componentRef = ET.SubElement(root, '{%s}componentRef' % (fixr_namespace), id=str(reference.component_id))
+                self.populate_xml_pedigree(componentRef, reference.pedigree)
                 if reference.presence:
                     componentRef.attrib['presence'] = reference.presence
                 annotation = ET.SubElement(componentRef, '{%s}annotation' % (fixr_namespace))
@@ -523,7 +575,8 @@ class Orchestration:
         components = ET.SubElement(root, '{%s}components' % (fixr_namespace))
         for source in self.components.values():
             # TODO abbrName
-            component = ET.SubElement(components, '{%s}component' % (fixr_namespace), name=source.name, id=str(source.id), category=source.category, added=source.added)
+            component = ET.SubElement(components, '{%s}component' % (fixr_namespace), name=source.name, id=str(source.id), category=source.category)
+            self.populate_xml_pedigree(component, source.pedigree)
             self.create_xml_references(component, source.references)
             annotation = ET.SubElement(component, '{%s}annotation' % (fixr_namespace))
             ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
@@ -574,7 +627,8 @@ class Orchestration:
         messages = ET.SubElement(root, '{%s}messages' % (fixr_namespace))
         for source in self.messages_by_msg_type.values():
             # TODO abbrName
-            message = ET.SubElement(messages, '{%s}message' % (fixr_namespace), name=source.name, id=str(source.id), msgType=source.msg_type, category=source.category, added=source.added)
+            message = ET.SubElement(messages, '{%s}message' % (fixr_namespace), name=source.name, id=str(source.id), msgType=source.msg_type, category=source.category)
+            self.populate_xml_pedigree(message, source.pedigree)
             structure = ET.SubElement(message, '{%s}structure' % (fixr_namespace))
             self.create_xml_references(structure, source.references)
             annotation = ET.SubElement(message, '{%s}annotation' % (fixr_namespace))
@@ -603,6 +657,7 @@ class Orchestration:
         return root
 
 
+
 def dump_field(orchestration, tag_or_name):
     try:
         field = orchestration.fields_by_tag[int(tag_or_name)]
@@ -615,14 +670,14 @@ def dump_field(orchestration, tag_or_name):
     print(field.name + " {")
     print("    Id    = " + str(field.id))
     print("    Type  = " + field.type)
-    print("    Added = " + field.added)
+    print("    Pedigree = " + str(field.pedigree))
     print("    (" + field.synopsis + ")")
     try:
         code_set = orchestration.code_sets[field.type]
         print("    Values {")
         for code in code_set.codes:
             name = code.name
-            print("        {} ({}, {}, {})".format(code.value, code.name, code.added, code.synopsis))
+            print("        {} ({}, Pedigree = {}, {})".format(code.value, code.name, str(code.pedigree), code.synopsis))
         print("    }")
     except KeyError:
         pass
@@ -634,15 +689,15 @@ def dump_references(orchestration, references, depth):
     for reference in references:
         if reference.field_id:
             field = orchestration.fields_by_tag[reference.field_id]
-            print(padding + '{} (Id = {}, Type = {}, Added = {}, Presence = {})'.format(field.name, field.id, field.type, field.added, reference.presence))
+            print(padding + '{} (Id = {}, Type = {}, Pedigree = {}, Presence = {})'.format(field.name, field.id, field.type, str(field.pedigree), reference.presence))
         elif reference.group_id:
             group = orchestration.groups[reference.group_id]
-            print(padding + group.name + " (Id = {}, Category = {}, Added = {}, Presence  = {}) {{".format(group.id, group.category, group.added, reference.presence))
+            print(padding + group.name + " (Id = {}, Category = {}, Pedigree = {}, Presence  = {}) {{".format(group.id, group.category, str(group.pedigree), reference.presence))
             dump_references(orchestration, group.references, depth + 1)
             print(padding + "}")
         elif reference.component_id:
             component = orchestration.components[reference.component_id]
-            print(padding + component.name + " (Id = {}, Category = {}, Added = {}, Presence = {}) {{".format(component.id, component.category, component.added, reference.presence))
+            print(padding + component.name + " (Id = {}, Category = {}, Pedigree = {}, Presence = {}) {{".format(component.id, component.category, str(component.pedigree), reference.presence))
             dump_references(orchestration, component.references, depth + 1)
             print(padding + "}")
 
@@ -660,7 +715,7 @@ def dump_message(orchestration, msg_type_or_name):
     print("    Id = " + message.id)
     print("    MsgType = " + message.msg_type)
     print("    Category = " + message.category)
-    print("    Added = " + message.added)
+    print("    Pedigree = " + str(message.pedigree))
     print("    (" + message.synopsis + ")")
     print("    References {")
     dump_references(orchestration, message.references, 2)

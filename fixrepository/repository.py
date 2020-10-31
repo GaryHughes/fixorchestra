@@ -5,30 +5,63 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 
-class DataType:
 
-    def __init__(self, name, base_type, description, added):
-        self.name = name
-        self.base_type = base_type
-        self.description = description
-        self.synopsis = description
-        self.added = added
+class Pedigree:
 
-class Enum:
-    # This class needs to be kept in sync with orchestra.Code because fixaudit.py stores 
-    # instances of these classes in Sets. Specifically both implementations have to be hashable 
-    # and they have to be hashing the same thing.
-    def __init__(self, id, value, symbolic_name, description, added, addedEP, updated, updatedEP, deprecated, deprecatedEP):
-        self.id = id
-        self.value = value
-        self.symbolic_name = symbolic_name
-        self.description = description
+    def __init__(self, added, addedEP, updated, updatedEP, deprecated, deprecatedEP):
         self.added = added
         self.addedEP = addedEP
         self.updated = updated
         self.updatedEP = updatedEP
         self.deprecated = deprecated
         self.deprecatedEP = deprecatedEP
+
+    def __str__(self):
+        buffer = ''
+        if self.added:
+            buffer += 'added=' + self.added
+        if self.addedEP:
+            if len(buffer) > 0:
+                buffer += ', '
+            buffer += 'addedEP=' + self.addedEP
+        if self.updated:
+            if len(buffer) > 0:
+                buffer += ', '
+            buffer += 'updated=' + self.updated
+        if self.updatedEP:
+            if len(buffer) > 0:
+                buffer += ', '
+            buffer += 'updatedEP=' + self.updatedEP
+        if self.deprecated:
+            if len(buffer) > 0:
+                buffer += ', '
+            buffer += 'deprecated=' + self.deprecated
+        if self.deprecatedEP:
+            if len(buffer) > 0:
+                buffer += ', '
+            buffer += 'deprecatedEP=' + self.deprecatedEP
+        return '(' + buffer + ')'
+
+
+class DataType:
+
+    def __init__(self, name, base_type, description, pedigree):
+        self.name = name
+        self.base_type = base_type
+        self.description = description
+        self.synopsis = description
+        self.pedigree = pedigree
+
+class Enum:
+    # This class needs to be kept in sync with orchestra.Code because fixaudit.py stores 
+    # instances of these classes in Sets. Specifically both implementations have to be hashable 
+    # and they have to be hashing the same thing.
+    def __init__(self, id, value, symbolic_name, description, pedigree):
+        self.id = id
+        self.value = value
+        self.symbolic_name = symbolic_name
+        self.description = description
+        self.pedigree = pedigree
 
     def __hash__(self):
         return hash(self.value)
@@ -41,12 +74,12 @@ class Field:
     # This class needs to be kept in sync with orchestra.Field because fixaudit.py stores 
     # nstances of these classes in Sets. Specifically both implementations have to be hashable 
     # and they have to be hashing the same thing.
-    def __init__(self, id, name, type, description, added):
+    def __init__(self, id, name, type, description, pedigree):
         self.id = id
         self.name = name
         self.type = type
         self.description = description
-        self.added = added
+        self.pedigree = pedigree
     
     def __hash__(self):
         return hash(self.id)
@@ -56,37 +89,37 @@ class Field:
 
 class Component:
 
-    def __init__(self, componentID, componentType, categoryID, name, description, added):
+    def __init__(self, componentID, componentType, categoryID, name, description, pedigree):
         self.componentID = componentID
         self.componentType = componentType
         self.categoryId = categoryID
         self.name = name
         self.description = description
-        self.added = added
+        self.pedigree = pedigree
 
 
 class MsgContent:
 
-    def __init__(self, componentID, tagText, indent, position, reqd, description, added):
+    def __init__(self, componentID, tagText, indent, position, reqd, description, pedigree):
         self.componentID = componentID
         self.tagText = tagText
         self.indent = indent
         self.position = position
         self.reqd = reqd
         self.description = description
-        self.added = added
+        self.pedigree = pedigree
 
 
 class Message:
 
-    def __init__(self, componentID, msgType, name, categoryID, sectionID, description, added):
+    def __init__(self, componentID, msgType, name, categoryID, sectionID, description, pedigree):
         self.componentID = componentID
         self.msgType = msgType
         self.name = name
         self.categoryID = categoryID
         self.sectionID = sectionID
         self.description = description
-        self.added = added
+        self.pedigree = pedigree
 
 
 class Repository:
@@ -114,7 +147,17 @@ class Repository:
         self.load_messages(directory)
         self.load_msg_contents(directory)
         self.load_sections(directory)
-      
+
+    def extract_pedigree(self, element):
+        return Pedigree(
+            element.get('added'),
+            element.get('addedEP'),
+            element.get('updated'),
+            element.get('updatedEP'),
+            element.get('deprecated'),
+            element.get('deprecatedEP')
+        )
+
     def load_components(self, directory):
         # <Component added="FIX.4.0">
         #     <ComponentID>1002</ComponentID>
@@ -136,7 +179,7 @@ class Repository:
                 componentElement.find('CategoryID').text,
                 componentElement.find('Name').text,
                 description.text if description else '',
-                componentElement.get('added')
+                self.extract_pedigree(componentElement)
             )
             self.components[component.name] = component
 
@@ -157,7 +200,7 @@ class Repository:
                 dataTypeElement.find('Name').text,
                 baseType.text if baseType is not None else None,
                 dataTypeElement.find('Description').text,
-                dataTypeElement.get('added')
+                self.extract_pedigree(dataTypeElement)
             )
             self.data_types[dataType.name] = dataType
         # This is present in all the files we parse so this is as good a place as any to get it.
@@ -182,12 +225,7 @@ class Repository:
                 enumElement.find('Value').text,
                 enumElement.find('SymbolicName').text,
                 elaboration.text if elaboration is not None else enumElement.find('Description').text,
-                enumElement.get('added'),
-                enumElement.get('addedEP'),
-                enumElement.get('updated'),
-                enumElement.get('updatedEP'),
-                enumElement.get('deprecated'),
-                enumElement.get('deprecatedEP')
+                self.extract_pedigree(enumElement)
             )
             try:
                 self.enums[enum.id].append(enum)
@@ -213,7 +251,7 @@ class Repository:
                 fieldElement.find('Name').text,
                 fieldElement.find('Type').text,
                 fieldElement.find('Description').text,
-                fieldElement.get('added')
+                self.extract_pedigree(fieldElement)
             )
             self.fields_by_tag[field.id] = field
             self.fields_by_name[field.name.lower()] = field
@@ -240,7 +278,7 @@ class Repository:
                 messageElement.find('CategoryID').text,
                 messageElement.find('SectionID').text,
                 messageElement.find('Description').text,
-                messageElement.get('added')
+                self.extract_pedigree(messageElement)
             )
             self.messages.append(message)
             self.messages_by_msg_type[message.msgType] = message
@@ -269,7 +307,7 @@ class Repository:
                 msgContentElement.find('Position').text,
                 msgContentElement.find('Reqd').text,
                 description.text if description is not None else None,
-                msgContentElement.get('added')
+                self.extract_pedigree(msgContentElement)
             )
             try:
                 self.msg_contents[msgContent.componentID].append(msgContent)
@@ -360,13 +398,13 @@ def dump_field(repository, tag_or_name):
     print(field.name + " {")
     print("    Id   = " + str(field.id))
     print("    Type  = " + field.type)
-    print("    Added = " + field.added)
+    print("    Pedigree = " + str(field.pedigree))
     print("    (" + field.description + ")")
     try:
         enums = repository.enums[field.id]
         print("    Values {")
         for enum in enums:
-            print("        {} ({}, {}, {})".format(enum.value, enum.symbolic_name, enum.added, enum.description))
+            print("        {} ({}, Pedigree = {}, {})".format(enum.value, enum.symbolic_name, str(enum.pedigree), enum.description))
         print("    }")
     except KeyError:
         pass
@@ -381,7 +419,7 @@ def dump_message_contents(repository, componentID, depth):
             try:
                 id = int(content.tagText)
                 field = repository.fields_by_tag[id]
-                print(padding + '{} (Id = {}, Type = {}, Added = {}, Required = {})'.format(field.name, field.id, field.type, field.added, content.reqd))
+                print(padding + '{} (Id = {}, Type = {}, Pedigree = {}, Required = {})'.format(field.name, field.id, field.type, str(field.pedigree), content.reqd))
             except ValueError:
                 component = repository.components[content.tagText]
                 print(padding + '{} {{'.format(component.name))
@@ -406,7 +444,7 @@ def dump_message(repository, msg_type_or_name):
     print("    MsgType = " + message.msgType)
     print("    CategoryID = " + message.categoryID)
     print("    SectionID = " + message.sectionID)
-    print("    Added = " + message.added)
+    print("    Pedigree = " + str(message.pedigree))
     print("    (" + message.description + ")")
     print("    MsgContents {")
     dump_message_contents(repository, message.componentID, 2)

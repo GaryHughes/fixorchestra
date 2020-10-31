@@ -34,11 +34,11 @@ def build_references(componentID):
             presence = None
         try:
             field = repository.fields_by_tag[int(content.tagText)]
-            references.append(orc.Reference(field.id, None, content.componentID, presence, content.added, content.description))
+            references.append(orc.Reference(field.id, None, content.componentID, presence, content.description, content.pedigree))
         except ValueError:
             try:
                 component = repository.components[content.tagText]
-                references.append(orc.Reference(None, None, component.componentID, presence, content.added, content.description))
+                references.append(orc.Reference(None, None, component.componentID, presence, content.description, content.pedigree))
             except KeyError:
                 # TODO
                 print('UNKNOWN REFERENCE ' + str(content))
@@ -63,15 +63,15 @@ if __name__ == '__main__':
 
     # data types
     for source in repository.data_types.values():
-        target = orc.DataType(source.name, source.base_type, source.added, source.description)
+        target = orc.DataType(source.name, source.base_type, source.description, source.pedigree)
         orchestration.data_types[target.name] = target
 
     # code sets
     for source in repository.fields_by_tag.values():
         try:
             enum = repository.enums[source.id]
-            codes = [orc.Code(value.id * 1000 + index, value.symbolic_name, value.value, value.description, value.added, value.addedEP, value.updated, value.updatedEP, value.deprecated, value.deprecatedEP) for index, value in enumerate(enum, start=1)]
-            target = orc.CodeSet(source.id, source.name + 'CodeSet', source.type, source.description, codes)
+            codes = [orc.Code(value.id * 1000 + index, value.symbolic_name, value.value, value.description, value.pedigree) for index, value in enumerate(enum, start=1)]
+            target = orc.CodeSet(source.id, source.name + 'CodeSet', source.type, source.description, source.pedigree, codes)
             orchestration.code_sets[target.name] = target
         except KeyError:
             pass
@@ -81,7 +81,7 @@ if __name__ == '__main__':
         type = source.type
         if source.id in repository.enums:
             type = source.name + 'CodeSet'
-        target = orc.Field(source.id, source.name, type, source.added, source.description)
+        target = orc.Field(source.id, source.name, type, source.description, source.pedigree)
         orchestration.fields_by_tag[target.id] = target
         orchestration.fields_by_name[target.name] = target
 
@@ -91,13 +91,13 @@ if __name__ == '__main__':
     # components
     for source in repository.components.values():
         references = build_references(source.componentID)
-        target = orc.Component(source.componentID, source.name, source.categoryId, source.added, source.description, references)
+        target = orc.Component(source.componentID, source.name, source.categoryId, source.description, source.pedigree, references)
         orchestration.components[target.id] = target
 
     # messages
     for source in repository.messages_by_msg_type.values():
         references = build_references(source.componentID)
-        target = orc.Message(source.componentID, source.name, source.msgType, source.categoryID, source.added, source.description, references)
+        target = orc.Message(source.componentID, source.name, source.msgType, source.categoryID, source.description, source.pedigree, references)
         orchestration.messages_by_msg_type[target.msg_type] = target
         orchestration.messages_by_name[target.name] = target
    

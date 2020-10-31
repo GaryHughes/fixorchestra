@@ -11,15 +11,16 @@ def compare_repository_with_orchestration(repository, orchestration):
 
     print("Fields Orchestration = {} Repository = {}".format(len(orchestration.fields_by_tag), len(repository.fields_by_tag)))
     
+    
+
     field_errors = []
     for r_id, r_field in repository.fields_by_tag.items():
         try:
             o_field = orchestration.fields_by_tag[r_id]
             if o_field.name != r_field.name:
                 field_errors.append("field Id = {} has Name = '{}' in the repository and Name = '{}' in the orchestration".format(r_id, r_field.name, o_field.name))
-            if o_field.added != r_field.added:
-                field_errors.append("field Id = {} has Added = '{}' in the repository and Added = '{}' in the orchestration".format(r_id, r_field.added, o_field.added))
-
+            if r_field.pedigree != o_field.pedigree:
+                field_errors.append('field Id = {} has pedigree {} in the repository and pedigree {} in the orchestration'.format(r_id, str(r_field.pedigree), str(o_field.pedigree)))
             o_values = frozenset(orchestration.field_values(o_field))
             r_values = frozenset(repository.field_values(r_field))
             if len(o_values) != len(r_values):
@@ -35,7 +36,7 @@ def compare_repository_with_orchestration(repository, orchestration):
             print("orchestration does not contain a field with Id = {}".format(r_id))
     
     if len(field_errors) == 0:
-        print("All fields have the same Name and Added values in the repository and the orchestration")
+        print("All fields have the same name and pedigree in the repository and the orchestration")
     else:
         print("The following {} discrepancies were found".format(len(field_errors)))
         for error in field_errors:
@@ -48,8 +49,8 @@ def compare_repository_with_orchestration(repository, orchestration):
         r_message = repository.messages_by_msg_type[msg_type]
         if o_message.name != r_message.name:
             message_errors.append("message MsgType = {} has Name = '{}' in the repository and Name = '{}' in the orchestration".format(msg_type, r_message.name, o_message.name))
-        if o_message.added != r_message.added:
-            message_errors.append("message MsgType = {} has Added = '{}' in the repository and Added = '{}' in the orchestration".format(msg_type, r_message.added, o_message.added))
+        if o_message.pedigree != r_message.pedigree:
+            message_errors.append('message MsgType = {} has pedigree {} in the repository and pedigree {} in the orchestration'.format(msg_type, str(r_message.pedigree), str(o_message.pedigree)))
         o_fields = frozenset([field for field, indent in orchestration.message_fields(o_message)])
         r_fields = frozenset([field for field, indent in repository.message_fields(r_message)])
         if len(o_fields) != len(r_fields):
