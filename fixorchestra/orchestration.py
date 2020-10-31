@@ -117,13 +117,8 @@ class Orchestration:
             if reference.field_id:
                 result.append((self.fields[reference.field_id], depth))
             elif reference.group_id:
-                try:
-                    group = self.groups[reference.group_id]
-                    result = result + self.references_to_fields(group.references, depth + 1)
-                except KeyError:
-                    # Broken groupRef in FIX44
-                    # https://github.com/FIXTradingCommunity/orchestrations/issues/11
-                    pass
+                group = self.groups[reference.group_id]
+                result = result + self.references_to_fields(group.references, depth + 1)
             elif reference.component_id:
                 component = self.components[reference.component_id]
                 result = result + self.references_to_fields(component.references, depth)
