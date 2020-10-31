@@ -17,12 +17,17 @@ class Enum:
     # This class needs to be kept in sync with orchestra.Code because fixaudit.py stores 
     # instances of these classes in Sets. Specifically both implementations have to be hashable 
     # and they have to be hashing the same thing.
-    def __init__(self, id, value, symbolic_name, description, added):
+    def __init__(self, id, value, symbolic_name, description, added, addedEP, updated, updatedEP, deprecated, deprecatedEP):
         self.id = id
         self.value = value
         self.symbolic_name = symbolic_name
         self.description = description
         self.added = added
+        self.addedEP = addedEP
+        self.updated = updated
+        self.updatedEP = updatedEP
+        self.deprecated = deprecated
+        self.deprecatedEP = deprecatedEP
 
     def __hash__(self):
         return hash(self.value)
@@ -123,12 +128,13 @@ class Repository:
             raise Exception("directory '{}' does not contain a Components.xml".format(directory))
         componentsElement = ET.parse(filename).getroot()
         for componentElement in componentsElement.findall('Component'):
+            description = componentElement.find('Description')
             component = Component(
                 componentElement.find('ComponentID').text,
                 componentElement.find('ComponentType').text,
                 componentElement.find('CategoryID').text,
                 componentElement.find('Name').text,
-                componentElement.find('Description').text,
+                description.text if description else '',
                 componentElement.get('added')
             )
             self.components[component.name] = component
@@ -169,12 +175,18 @@ class Repository:
             raise Exception("directory '{}' does not contain an Enums.xml".format(directory))
         enumsElement = ET.parse(filename).getroot()
         for enumElement in enumsElement.findall('Enum'):
+            elaboration = enumElement.find('Elaboration')
             enum = Enum(
                 int(enumElement.find('Tag').text),
                 enumElement.find('Value').text,
                 enumElement.find('SymbolicName').text,
-                enumElement.find('Description').text,
-                enumElement.get('added')
+                elaboration.text if elaboration is not None else enumElement.find('Description').text,
+                enumElement.get('added'),
+                enumElement.get('addedEP'),
+                enumElement.get('updated'),
+                enumElement.get('updatedEP'),
+                enumElement.get('deprecated'),
+                enumElement.get('deprecatedEP')
             )
             try:
                 self.enums[enum.id].append(enum)

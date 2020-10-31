@@ -433,7 +433,7 @@ class Orchestration:
             code_set = ET.SubElement(code_sets, '{%s}codeSet' % (fixr_namespace), name=source.name, id=str(source.id), type=source.type)
             for source_code in source.codes:
                 # TODO sort attribute
-                code = ET.SubElement(code_set, '{%s}code' % (fixr_namespace), name=source_code.name, id=str(source_code.id), value=source_code.value, added=source_code.added)
+                code = ET.SubElement(code_set, '{%s}code' % (fixr_namespace), name=source_code.name, id=str(source_code.id), value=source_code.value, added=source_code.added or '')
                 annotation = ET.SubElement(code, '{%s}annotation' % (fixr_namespace))
                 ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source_code.synopsis
             annotation = ET.SubElement(code_set, '{%s}annotation' % (fixr_namespace))
@@ -552,7 +552,7 @@ class Orchestration:
         messages = ET.SubElement(root, '{%s}messages' % (fixr_namespace))
         for source in self.messages_by_msg_type.values():
             # TODO abbrName
-            message = ET.SubElement(messages, '{%s}message' % (fixr_namespace), name=source.name, id=source.id, msgType=source.msg_type, category=source.category, added=source.added)
+            message = ET.SubElement(messages, '{%s}message' % (fixr_namespace), name=source.name, id=str(source.id), msgType=source.msg_type, category=source.category, added=source.added)
             structure = ET.SubElement(message, '{%s}structure' % (fixr_namespace))
             self.create_xml_references(structure, source.references)
             annotation = ET.SubElement(message, '{%s}annotation' % (fixr_namespace))
