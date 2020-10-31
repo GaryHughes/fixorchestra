@@ -31,7 +31,7 @@ def build_references(componentID):
         if content.reqd == '1':
             presence = 'required'
         else:
-            presence = None
+            presence = 'optional'
         try:
             field = repository.fields_by_tag[int(content.tagText)]
             references.append(orc.Reference(field.id, None, content.componentID, presence, content.description, content.pedigree))
@@ -63,9 +63,9 @@ if __name__ == '__main__':
 
     # data types
     for source in repository.data_types.values():
+        print(source.pedigree)
         target = orc.DataType(source.name, source.base_type, source.description, source.pedigree)
         orchestration.data_types[target.name] = target
-
     # code sets
     for source in repository.fields_by_tag.values():
         try:
