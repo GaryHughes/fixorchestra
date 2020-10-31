@@ -58,8 +58,8 @@ def compare_repository_with_orchestration(repository, orchestration):
             message_errors.append("message MsgType = {} has Name = '{}' in the repository and Name = '{}' in the orchestration".format(msg_type, r_message.name, o_message.name))
         if o_message.pedigree != r_message.pedigree:
             message_errors.append('message MsgType = {} has pedigree {} in the repository and pedigree {} in the orchestration'.format(msg_type, str(r_message.pedigree), str(o_message.pedigree)))
-        o_fields = frozenset([field for field, indent in orchestration.message_fields(o_message)])
-        r_fields = frozenset([field for field, indent in repository.message_fields(r_message)])
+        o_fields = frozenset([field.field for field in orchestration.message_fields(o_message)])
+        r_fields = frozenset([field.field for field in repository.message_fields(r_message)])
         if len(o_fields) != len(r_fields):
             message_errors.append("message MsgType = {} has {} fields in the repository and {} fields in the orchestration".format(msg_type, len(r_fields), len(o_fields)))
         o_extras = o_fields - r_fields
@@ -100,7 +100,7 @@ def validate_repository(repository):
             print(error)
 
 
-def visit_orchestration_references(orchetration, references, context, field_errors, group_errors, component_errors):
+def visit_orchestration_references(orchestration, references, context, field_errors, group_errors, component_errors):
     for reference in references:
         if reference.field_id:
             try:
@@ -116,7 +116,7 @@ def visit_orchestration_references(orchetration, references, context, field_erro
         if reference.component_id:
             try:
                 component = orchestration.components[reference.component_id]
-                visit_orchestration_references(orchetration, component.references, context + 'references component id={}'.format(component.id), field_errors, group_errors, component_errors)
+                visit_orchestration_references(orchestration, component.references, context + 'references component id={}'.format(component.id), field_errors, group_errors, component_errors)
             except KeyError:
                 component_errors.append('{} that references component id={} that is not defined'.format(context, reference.component_id))
        

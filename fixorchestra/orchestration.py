@@ -159,6 +159,14 @@ class Message:
         self.references = references
  
        
+class MessageField:
+
+    def __init__(self, field, presence, depth):
+        self.field = field
+        self.presence = presence
+        self.depth = depth
+
+
 class Orchestration:
 
     data_types = {}             # DataType.name -> DataType
@@ -189,7 +197,7 @@ class Orchestration:
         result = []
         for reference in references:
             if reference.field_id:
-                result.append((self.fields_by_tag[reference.field_id], depth))
+                result.append(MessageField(self.fields_by_tag[reference.field_id], reference.presence, depth))
             elif reference.group_id:
                 group = self.groups[reference.group_id]
                 result = result + self.references_to_fields(group.references, depth + 1)
@@ -312,6 +320,7 @@ class Orchestration:
             )
             self.fields_by_tag[field.id] = field
             self.fields_by_name[field.name.lower()] = field
+
 
     def extract_references(self, element):
         references = []

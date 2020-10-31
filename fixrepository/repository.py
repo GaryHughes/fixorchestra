@@ -122,6 +122,14 @@ class Message:
         self.pedigree = pedigree
 
 
+class MessageField:
+
+    def __init__(self, field, required, depth):
+        self.field = field
+        self.required = required
+        self.depth = depth
+
+
 class Repository:
 
     enums = {}                  # Enum.id -> [Enum]
@@ -332,7 +340,7 @@ class Repository:
                 try:
                     id = int(content.tagText)
                     field = self.fields_by_tag[id]
-                    fields.append((field, depth)) 
+                    fields.append(MessageField(field, content.reqd, depth)) 
                 except ValueError:
                     component = self.components[content.tagText]
                     fields += self.extract_fields(component.componentID, depth + 1)
