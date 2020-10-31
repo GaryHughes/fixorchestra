@@ -409,6 +409,28 @@ class Orchestration:
             ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
 
 
+    def create_xml_code_sets(self, root):
+        # <fixr:codeSets>
+        #   <fixr:codeSet name="AdvSideCodeSet" id="4" type="char">
+        #       <fixr:code name="Buy" id="4001" value="B" sort="1" added="FIX.2.7">
+        #           <fixr:annotation>
+        #               <fixr:documentation purpose="SYNOPSIS">
+        #                   Buy
+        #               </fixr:documentation>
+        #           </fixr:annotation>
+        #       </fixr:code>
+        code_sets = ET.SubElement(root, '{%s}codeSets' % (fixr_namespace))
+        for source in self.code_sets.values():
+            code_set = ET.SubElement(code_sets, '{%s}codeSet' % (fixr_namespace), name=source.name, id=str(source.id), type=source.type)
+            annotation = ET.SubElement(code_set, '{%s}annotation' % (fixr_namespace))
+            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
+            for source_code in source.codes:
+                # TODO sort attribute
+                code = ET.SubElement(code_set, '{%s}code' % (fixr_namespace), name=source_code.name, id=str(source_code.id), value=source_code.value, added=source_code.added)
+                annotation = ET.SubElement(code, '{%s}annotation' % (fixr_namespace))
+                ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source_code.synopsis
+                
+
 
     def to_xml(self):
         # <?xml version="1.0" encoding="UTF-8"?>
@@ -419,7 +441,7 @@ class Orchestration:
         root = ET.Element('{%s}repository' % (fixr_namespace))
         self.create_xml_metadata(root)
         self.create_xml_data_types(root)
-
+        self.create_xml_code_sets(root)
       
         return root
 

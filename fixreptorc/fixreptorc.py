@@ -36,9 +36,20 @@ if __name__ == '__main__':
     repository = rep.Repository(args.repository)
     orchestration = orc.Orchestration()
 
+    # data types
     for source in repository.data_types.values():
         target = orc.DataType(source.name, source.base_type, source.added, source.description)
         orchestration.data_types[target.name] = target
+
+    # code sets
+    for source in repository.fields_by_tag.values():
+        try:
+            enum = repository.enums[source.id]
+            codes = [orc.Code(value.id * 1000 + index, value.value, value.symbolic_name, value.added, value.description) for index, value in enumerate(enum, start=1)]
+            target = orc.CodeSet(source.id, source.name, source.type, source.description, codes)
+            orchestration.code_sets[target.name] = target
+        except KeyError:
+            pass
 
     xml = orchestration.to_xml()
 
