@@ -152,7 +152,7 @@ class Orchestration:
                 result = result + self.references_to_fields(group.references, depth + 1)
             elif reference.component_id:
                 component = self.components[reference.component_id]
-                result = result + self.references_to_fields(component.references, depth)
+                result = result + self.references_to_fields(component.references, depth + 1)
         return result
 
 
@@ -623,7 +623,6 @@ def dump_references(orchestration, references, depth):
             print(padding + component.name + " (Id = {}, Category = {}, Added = {}, Presence = {}) {{".format(component.id, component.category, component.added, reference.presence))
             dump_references(orchestration, component.references, depth + 1)
             print(padding + "}")
-            pass
 
 
 def dump_message(orchestration, msg_type_or_name):
