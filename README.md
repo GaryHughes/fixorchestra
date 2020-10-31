@@ -207,6 +207,7 @@ optional arguments:
                         fix_repository_2010_edition_20200402/FIX.4.4/Base
 ```
 
+```
 $ ./fixaudit.py --repository ~/Downloads/fix_repository_2010_edition_20200402/FIX.4.4/Base --orchestration ../../orchestrations/FIX\ Standard/FixRepository44.xml
 Fields Orchestration = 912 Repository = 912
 All fields have the same Name and Added values in the repository and the orchestration
