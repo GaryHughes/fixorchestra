@@ -2,20 +2,27 @@
 
 import argparse
 import xml.etree.ElementTree as ET
+import datetime
 
-ns = { 
-    'xs'     : 'http://www.w3.org/2001/XMLSchema',
-    'functx' : 'http://www.functx.com',
-    'fixr'   : 'http://fixprotocol.io/2020/orchestra/repository',
-    'dc'     : 'http://purl.org/dc/elements/1.1/', 
-    'xsi'    : 'http://www.w3.org/2001/XMLSchema-instance' 
+xs_namespace = 'http://www.w3.org/2001/XMLSchema'
+functx_namespace = 'http://www.functx.com'
+fixr_namespace = 'http://fixprotocol.io/2020/orchestra/repository'
+dc_namespace = 'http://purl.org/dc/elements/1.1/'
+xsi_namespace = 'http://www.w3.org/2001/XMLSchema-instance'
+
+namespaces = { 
+    'xs'     : xs_namespace,
+    'functx' : functx_namespace,
+    'fixr'   : fixr_namespace,
+    'dc'     : dc_namespace, 
+    'xsi'    : xsi_namespace 
 }
 
 class DataType:
 
-    def __init__(self, name, baseType, added, synopsis):
+    def __init__(self, name, base_type, added, synopsis):
         self.name = name
-        self.baseType = baseType
+        self.base_type = base_type
         self.added = added
         self.synopsis = synopsis
 
@@ -118,7 +125,9 @@ class Orchestration:
     messages_by_msg_type = {}   # Message.msg_type -> Message
     messages_by_name = {}       # Message.name.lower() -> Message
 
-    def __init__(self, filename):
+    def __init__(self, filename = None):
+        if filename == None:
+            return
         self.filename = filename
         tree = ET.parse(filename)
         repository = tree.getroot()
@@ -128,7 +137,6 @@ class Orchestration:
         self.load_components(repository)
         self.load_groups(repository)
         self.load_messages(repository)
-
 
     def references_to_fields(self, references, depth):
         result = []
@@ -162,7 +170,7 @@ class Orchestration:
         #           int field representing the number of entries in a repeating group. Value must be positive.
         #       </fixr:documentation>
         #   </fixr:annotation>
-        documentation = element.findall("./fixr:annotation/fixr:documentation/[@purpose='SYNOPSIS']", ns)
+        documentation = element.findall("./fixr:annotation/fixr:documentation/[@purpose='SYNOPSIS']", namespaces)
         if not documentation or len(documentation) == 0 or documentation[0].text is None:
             return ''
         return documentation[0].text.strip()
@@ -184,8 +192,8 @@ class Orchestration:
         #           </fixr:documentation>
         #       </fixr:annotation>
         #   </fixr:datatype>
-        dataTypesElement = repository.find('fixr:datatypes', ns)
-        for dataTypeElement in dataTypesElement.findall('fixr:datatype', ns):
+        dataTypesElement = repository.find('fixr:datatypes', namespaces)
+        for dataTypeElement in dataTypesElement.findall('fixr:datatype', namespaces):
             dataType = DataType(
                 dataTypeElement.get('name'),
                 dataTypeElement.get('baseType'),
@@ -205,10 +213,10 @@ class Orchestration:
         #               </fixr:documentation>
         #           </fixr:annotation>
         #       </fixr:code>
-        codeSetsElement = repository.find('fixr:codeSets', ns)
-        for codeSetElement in codeSetsElement.findall('fixr:codeSet', ns):
+        codeSetsElement = repository.find('fixr:codeSets', namespaces)
+        for codeSetElement in codeSetsElement.findall('fixr:codeSet', namespaces):
             codes = []
-            for codeElement in codeSetElement.findall('fixr:code', ns):
+            for codeElement in codeSetElement.findall('fixr:code', namespaces):
                 code = Code(
                     codeElement.get('id'),
                     codeElement.get('name'),
@@ -235,8 +243,8 @@ class Orchestration:
         #           </fixr:documentation>
 		# 	    </fixr:annotation>
 		#   </fixr:field>
-        fieldsElement = repository.find('fixr:fields', ns)
-        for fieldElement in fieldsElement.findall('fixr:field', ns):
+        fieldsElement = repository.find('fixr:fields', namespaces)
+        for fieldElement in fieldsElement.findall('fixr:field', namespaces):
             field = Field(
                 int(fieldElement.get('id')),
                 fieldElement.get('name'),
@@ -250,7 +258,7 @@ class Orchestration:
     def extract_references(self, element):
         references = []
         for refElement in list(element):
-            if refElement.tag == '{{{}}}fieldRef'.format(ns['fixr']) or refElement.tag == '{{{}}}numInGroup'.format(ns['fixr']):
+            if refElement.tag == '{{{}}}fieldRef'.format(namespaces['fixr']) or refElement.tag == '{{{}}}numInGroup'.format(namespaces['fixr']):
                 reference = Reference(
                     int(refElement.get('id')),
                     None,
@@ -259,7 +267,7 @@ class Orchestration:
                     refElement.get('added')
                 )
                 references.append(reference)
-            elif refElement.tag == '{{{}}}groupRef'.format(ns['fixr']):
+            elif refElement.tag == '{{{}}}groupRef'.format(namespaces['fixr']):
                 reference = Reference(
                     None,
                     refElement.get('id'),
@@ -268,7 +276,7 @@ class Orchestration:
                     refElement.get('added')
                 )
                 references.append(reference)
-            elif refElement.tag == '{{{}}}componentRef'.format(ns['fixr']):
+            elif refElement.tag == '{{{}}}componentRef'.format(namespaces['fixr']):
                 reference = Reference(
                     None,
                     None,
@@ -277,7 +285,7 @@ class Orchestration:
                     refElement.get('added')
                 )
                 references.append(reference)
-            elif refElement.tag == '{{{}}}annotation'.format(ns['fixr']):
+            elif refElement.tag == '{{{}}}annotation'.format(namespaces['fixr']):
                 # Don't care about these atleast for now
                 pass
             else:
@@ -294,8 +302,8 @@ class Orchestration:
         #           </fixr:documentation>
         #       </fixr:annotation>
         #   </fixr:fieldRef>
-        componentsElement = repository.find('fixr:components', ns)
-        for componentElement in componentsElement.findall('fixr:component', ns):
+        componentsElement = repository.find('fixr:components', namespaces)
+        for componentElement in componentsElement.findall('fixr:component', namespaces):
             component = Component(
                 componentElement.get('id'), 
                 componentElement.get('name'), 
@@ -325,8 +333,8 @@ class Orchestration:
         #           <fixr:documentation/>
         #       </fixr:annotation>
         #    </fixr:group>
-        groupsElement = repository.find('fixr:groups', ns)
-        for groupElement in groupsElement.findall('fixr:group', ns):
+        groupsElement = repository.find('fixr:groups', namespaces)
+        for groupElement in groupsElement.findall('fixr:group', namespaces):
             group = Group(
                 groupElement.get('id'),
                 groupElement.get('name'),
@@ -348,9 +356,9 @@ class Orchestration:
         #                   </fixr:documentation>
         #               </fixr:annotation>
         #           </fixr:componentRef>
-        messagesElement = repository.find('fixr:messages', ns)
-        for messageElement in messagesElement.findall('fixr:message', ns):
-            structureElement = messageElement.find('fixr:structure', ns)
+        messagesElement = repository.find('fixr:messages', namespaces)
+        for messageElement in messagesElement.findall('fixr:message', namespaces):
+            structureElement = messageElement.find('fixr:structure', namespaces)
             message = Message(
                 messageElement.get('id'),
                 messageElement.get('name'),
@@ -363,6 +371,43 @@ class Orchestration:
             self.messages[message.id] = message
             self.messages_by_msg_type[message.msg_type] = message
             self.messages_by_name[message.name.lower()] = message
+
+    
+    def create_xml_metadata(self, root):
+        #     <fixr:metadata>
+        #         <dc:title>Orchestra</dc:title>
+        #         <dc:creator>unified2orchestra.xslt script</dc:creator>
+        #         <dc:publisher>FIX Trading Community</dc:publisher>
+        #         <dc:date>2019-03-12T10:11:48.582-05:00</dc:date>
+        #         <dc:format>Orchestra schema</dc:format>
+        #         <dc:source>FIX Unified Repository</dc:source>
+        #     </fixr:metadata>
+        metadata = ET.SubElement(root, '{%s}metadata' % (fixr_namespace))
+        title = ET.SubElement(metadata, '{%s}title' % (dc_namespace))
+        title.text = 'Orchestra'
+        creator = ET.SubElement(metadata, '{%s}creator' % (dc_namespace))
+        creator.text = 'https://github.com/GaryHughes/fixorchestra'
+        publisher = ET.SubElement(metadata, '{%s}publisher' % (dc_namespace))
+        publisher.text = 'Gary Hughes'
+        date = ET.SubElement(metadata, '{%s}date' % (dc_namespace))
+        date.text = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f UTC')
+        format = ET.SubElement(metadata, '{%s}format' % (dc_namespace))
+        format.text = 'Orchestra schema'
+        source = ET.SubElement(metadata, '{%s}source' % (dc_namespace))
+        source.text = 'FIX Unified Repository'
+
+
+    def to_xml(self):
+        # <?xml version="1.0" encoding="UTF-8"?>
+        # <fixr:repository xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:functx="http://www.functx.com" xmlns:fixr="http://fixprotocol.io/2020/orchestra/repository" xmlns:dc="http://purl.org/dc/elements/1.1/" name="FIX.4.2" version="FIX.4.2" specUrl="http://www.fixprotocol.org/specifications/fix4.2spec" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        for prefix, uri in namespaces.items():
+            ET.register_namespace(prefix, uri)
+
+        root = ET.Element('{%s}repository' % (fixr_namespace))
+        self.create_xml_metadata(root)        
+
+      
+        return root
 
 
 def dump_field(orchestration, tag_or_name):
