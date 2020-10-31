@@ -225,7 +225,7 @@ optional arguments:
 ```
 
 ```
-$ ./fixaudit.py --repository ~/Downloads/fix_repository_2010_edition_20200402/FIX.4.2/Base
+$ ./fixaudit.py --repository fix_repository_2010_edition_20200402/FIX.4.2/Base
 Validating repository
 field tag=18 has type=MultipleValueString but there is no such data type defined
 field tag=90 has type=Length but there is no such data type defined
@@ -247,7 +247,7 @@ field tag=445 has type=Length but there is no such data type defined
 ```
 
 ```
-$ ./fixaudit.py --repository ~/Downloads/fix_repository_2010_edition_20200402/FIX.4.4/Base --orchestration ../../orchestrations/FIX\ Standard/FixRepository44.xml
+$ ./fixaudit.py --repository fix_repository_2010_edition_20200402/FIX.4.4/Base --orchestration orchestrations/FIX\ Standard/FixRepository44.xml
 Fields Orchestration = 912 Repository = 912
 All fields have the same Name and Added values in the repository and the orchestration
 Messages Orchestration = 93 Repository = 93
@@ -272,10 +272,10 @@ optional arguments:
 
 ```
 # Generate an orchestration from a repository
-$ ./fixreptorc.py --repository ~/Downloads/fix_repository_2010_edition_20200402/FIX.4.4/Base > fix44_orchestration.xml
+$ ./fixreptorc.py --repository fix_repository_2010_edition_20200402/FIX.4.4/Base > fix44_orchestration.xml
 
 # Sanity check the result
-$ ./fixaudit.py --repository ~/Downloads/fix_repository_2010_edition_20200402/FIX.4.4/Base --orchestration fix44_orchestration.xml
+$ ./fixaudit.py --repository fix_repository_2010_edition_20200402/FIX.4.4/Base --orchestration fix44_orchestration.xml
 Fields Orchestration = 912 Repository = 912
 All fields have the same Name and Added values in the repository and the orchestration
 Messages Orchestration = 93 Repository = 93
