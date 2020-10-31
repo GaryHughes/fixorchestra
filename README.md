@@ -27,6 +27,8 @@ optional arguments:
                         Display the definition of a message
   --list-messages       List all the messages in this orchestration
   --list-fields         List all the fields in this orchestration
+  --list-enumerated-fields
+                        List all fields with an enumerated value
 ```
 
 ```
@@ -126,6 +128,8 @@ optional arguments:
                         Display the definition of a message (name is not case sensitive
   --list-messages       List all the messages in this repository
   --list-fields         List all the fields in this repository
+  --list-enumerated-fields
+                        List all fields with an enumerated value
 ```
 
 ```

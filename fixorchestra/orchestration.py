@@ -656,6 +656,15 @@ def list_fields(orchestration):
         print('{}\t{} ({})'.format(field.id, field.name, field.type))
 
 
+def list_enumerated_fields(orxchestration):
+    for field in orchestration.fields_by_tag.values():
+        try:
+            code_set = orchestration.code_sets[field.type]
+            print('{}\t{} ({})'.format(field.id, field.name, field.type))
+        except KeyError:
+            pass
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -664,6 +673,7 @@ if __name__ == '__main__':
     parser.add_argument('--dump-message', required=False, metavar='(msgtype|name)', help='Display the definition of a message')
     parser.add_argument('--list-messages', default=False, action='store_true', help='List all the messages in this orchestration')
     parser.add_argument('--list-fields', default=False, action='store_true', help='List all the fields in this orchestration')
+    parser.add_argument('--list-enumerated-fields', default=False, action='store_true', help='List all fields with an enumerated value')
 
     args = parser.parse_args()
 
@@ -680,6 +690,9 @@ if __name__ == '__main__':
 
     if args.list_fields:
         list_fields(orchestration)
+
+    if args.list_enumerated_fields:
+        list_enumerated_fields(orchestration)
 
 
 
