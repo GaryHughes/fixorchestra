@@ -3,6 +3,7 @@
 import argparse
 import xml.etree.ElementTree as ET
 import os
+import sys
 
 class DataType:
 
@@ -310,7 +311,41 @@ class Repository:
         try:
             return self.enums[field.id]
         except KeyError:
-            return []    
+            return []   
+
+
+    def fix_known_errors(self):
+        #
+        # This method will attempt to fix errors known to exist in the repositories published by fixprotocol.org. 
+        # This is useful when generating code etc where the repository needs to be internally consistent.
+        #
+        # The publiched 4.0 specification contains fields with undefined data type Length
+        # The publiched 4.1 specification contains fields with undefined data type Length
+        # The published 4.2 specification contains fields with undefined data types Length and MultipleValueString
+        # The published 4.3 specification contains fields with undefined data types MultipleValueString, Boolean, and DayOfMonth
+        # The published 4.4 specification contains fields with undefined data type MultipleValueString
+        #
+        for field in self.fields_by_tag.values():
+            try:
+                data_type = self.data_types[field.type]
+            except KeyError:
+                if field.type == 'Length':
+                    sys.stderr.writelines('Defining missing data type Length\n')
+                    data_type = DataType('Length', 'int', 'int field representing the length in bytes. Value must be positive.', 'FIX.4.3')
+                elif field.type == 'MultipleValueString':
+                    sys.stderr.writelines('Renaming data type MultipleValueString -> MultipleStringValue\n')
+                    field.type = 'MultipleStringValue'
+                    continue
+                elif field.type == 'Boolean':
+                    sys.stderr.writelines('Definiing missing data type Boolean\n')
+                    data_type = DataType('Boolean', 'char', "char field containing one of two values: 'Y' = True/Yes 'N' = False/No", 'FIX.4.2')
+                elif field.type == 'DayOfMonth':
+                    sys.stderr.writelines('Defining missing data type DayOfMonth\n')
+                    data_type = DataType('DayOfMonth', 'int', 'int field representing a day during a particular monthy (values 1 to 31).', 'FIX.4.1')
+                else:
+                    raise Exception("Found a undefined data type '{}' that I dont know how to fix".format(field.type))
+                self.data_types[data_type.name] = data_type
+
 
 
 def dump_field(repository, tag_or_name):

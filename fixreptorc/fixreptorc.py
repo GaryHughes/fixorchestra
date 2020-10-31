@@ -54,6 +54,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     repository = rep.Repository(args.repository)
+    repository.fix_known_errors()
+
     orchestration = orc.Orchestration()
 
     # version
