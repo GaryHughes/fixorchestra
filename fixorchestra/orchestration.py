@@ -493,8 +493,9 @@ class Orchestration:
             self.populate_xml_pedigree(data_type, source.pedigree)
             if source.base_type:
                 data_type.attrib['baseType'] = source.base_type
-            annotation = ET.SubElement(data_type, '{%s}annotation' % (fixr_namespace))
-            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
+            if source.synopsis:
+                annotation = ET.SubElement(data_type, '{%s}annotation' % (fixr_namespace))
+                ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
 
 
     def create_xml_code_sets(self, root):
@@ -516,8 +517,9 @@ class Orchestration:
                 self.populate_xml_pedigree(code, source.pedigree)
                 annotation = ET.SubElement(code, '{%s}annotation' % (fixr_namespace))
                 ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source_code.synopsis
-            annotation = ET.SubElement(code_set, '{%s}annotation' % (fixr_namespace))
-            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
+            if source.synopsis:
+                annotation = ET.SubElement(code_set, '{%s}annotation' % (fixr_namespace))
+                ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
       
 
     def create_xml_fields(self, root):
@@ -535,7 +537,8 @@ class Orchestration:
             field = ET.SubElement(fields, '{%s}field' % (fixr_namespace), id=str(source.id), name=source.name, type=source.type)
             self.populate_xml_pedigree(field, source.pedigree)
             annotation = ET.SubElement(field, '{%s}annotation' % (fixr_namespace))
-            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
+            if source.synopsis:
+                ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
 
 
     def create_xml_references(self, root, references):
@@ -559,15 +562,17 @@ class Orchestration:
                 self.populate_xml_pedigree(fieldRef, reference.pedigree)
                 if reference.presence:
                     fieldRef.attrib['presence'] = reference.presence
-                annotation = ET.SubElement(fieldRef, '{%s}annotation' % (fixr_namespace))
-                ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = reference.synopsis
+                if reference.synopsis:
+                    annotation = ET.SubElement(fieldRef, '{%s}annotation' % (fixr_namespace))
+                    ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = reference.synopsis
             elif reference.component_id:
                 componentRef = ET.SubElement(root, '{%s}componentRef' % (fixr_namespace), id=str(reference.component_id))
                 self.populate_xml_pedigree(componentRef, reference.pedigree)
                 if reference.presence:
                     componentRef.attrib['presence'] = reference.presence
-                annotation = ET.SubElement(componentRef, '{%s}annotation' % (fixr_namespace))
-                ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = reference.synopsis
+                if reference.synopsis:
+                    annotation = ET.SubElement(componentRef, '{%s}annotation' % (fixr_namespace))
+                    ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = reference.synopsis
             elif reference.group_id:
                 pass    
 
@@ -587,8 +592,9 @@ class Orchestration:
             component = ET.SubElement(components, '{%s}component' % (fixr_namespace), name=source.name, id=str(source.id), category=source.category)
             self.populate_xml_pedigree(component, source.pedigree)
             self.create_xml_references(component, source.references)
-            annotation = ET.SubElement(component, '{%s}annotation' % (fixr_namespace))
-            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
+            if source.synopsis:
+                annotation = ET.SubElement(component, '{%s}annotation' % (fixr_namespace))
+                ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
          
    
     def create_xml_groups(self, root):
@@ -640,8 +646,9 @@ class Orchestration:
             self.populate_xml_pedigree(message, source.pedigree)
             structure = ET.SubElement(message, '{%s}structure' % (fixr_namespace))
             self.create_xml_references(structure, source.references)
-            annotation = ET.SubElement(message, '{%s}annotation' % (fixr_namespace))
-            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
+            if source.synopsis:
+                annotation = ET.SubElement(message, '{%s}annotation' % (fixr_namespace))
+                ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
 
 
     def to_xml(self):

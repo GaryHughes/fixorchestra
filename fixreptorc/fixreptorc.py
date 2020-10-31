@@ -63,7 +63,6 @@ if __name__ == '__main__':
 
     # data types
     for source in repository.data_types.values():
-        print(source.pedigree)
         target = orc.DataType(source.name, source.base_type, source.description, source.pedigree)
         orchestration.data_types[target.name] = target
     # code sets
