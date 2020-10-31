@@ -249,7 +249,21 @@ class Repository:
 
 
 def dump_field(repository, tag):
-    pass
+    field = repository.fields[tag]
+    print(field.name + " {")
+    print("    Tag   = " + field.tag)
+    print("    Type  = " + field.type)
+    print("    Added = " + field.added)
+    print("    (" + field.description + ")")
+    try:
+        enums = repository.enums[field.tag]
+        print("    Values {")
+        for enum in enums:
+            print("        {} ({}, {}, {})".format(enum.value, enum.symbolicName, enum.added, enum.description))
+        print("    }")
+    except KeyError:
+        pass
+    print("}")
 
 
 def dump_message(repository, msg_type):
@@ -273,9 +287,3 @@ if __name__ == '__main__':
     if args.dump_message:
         dump_message(repository, args.dump_message)
 
-    print("enums {}".format(len(repository.enums)))
-    print("fields {}".format(len(repository.fields)))
-    print("data types {}".format(len(repository.data_types)))
-    print("components {}".format(len(repository.components)))
-    print("msg contents {}".format(len(repository.msg_contents)))
-    print("messages {}".format(len(repository.messages)))
