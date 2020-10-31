@@ -92,7 +92,7 @@ def validate_repository(repository):
             print(error)
 
 
-def visit_references(orchetration, references, context, field_errors, group_errors, component_errors):
+def visit_orchestration_references(orchetration, references, context, field_errors, group_errors, component_errors):
     for reference in references:
         if reference.field_id:
             try:
@@ -102,13 +102,13 @@ def visit_references(orchetration, references, context, field_errors, group_erro
         if reference.group_id:
             try:
                 group = orchestration.groups[reference.group_id]
-                visit_references(orchestration, group.references, context + ' references group id={}'.format(group.id), field_errors, group_errors, component_errors)
+                visit_orchestration_references(orchestration, group.references, context + ' references group id={}'.format(group.id), field_errors, group_errors, component_errors)
             except KeyError:
                 group_errors.append('{} that contains a reference to group id={} that is not defined'.format(context, reference.group_id))
         if reference.component_id:
             try:
                 component = orchestration.components[reference.component_id]
-                visit_references(orchetration, component.references, context + 'references component id={}'.format(component.id), field_errors, group_errors, component_errors)
+                visit_orchestration_references(orchetration, component.references, context + 'references component id={}'.format(component.id), field_errors, group_errors, component_errors)
             except KeyError:
                 component_errors.append('{} that contains a reference to component id={} that is not defined'.format(context, reference.component_id))
        
@@ -134,7 +134,7 @@ def validate_orchestration(orchestration):
             except KeyError:
                 data_type_errors.append('field tag={} has type={} but there is no such data type or code set defined'.format(field.id, field.type))
     for message in orchestration.messages.values():
-        visit_references(orchestration, message.references, 'message MsgType={}'.format(message.msg_type), field_errors, group_errors, component_errors)
+        visit_orchestration_references(orchestration, message.references, 'message MsgType={}'.format(message.msg_type), field_errors, group_errors, component_errors)
     
     if len(data_type_errors) == 0:
         print('All data types referenced by fields are defined')
