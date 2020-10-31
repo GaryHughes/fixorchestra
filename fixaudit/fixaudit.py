@@ -7,16 +7,7 @@ sys.path.append("..")
 from fixorchestra.orchestration import *
 from fixrepository.repository import *
 
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--orchestration', required=True, metavar='file', help='The orchestration to load')
-    parser.add_argument('--repository', required=True, metavar='directory', help='A directory containing a repository to load e.g. fix_repository_2010_edition_20200402/FIX.4.4/Base')
-
-    args = parser.parse_args()
-
-    orchestration = Orchestration(args.orchestration)
-    repository = Repository(args.repository)
+def compare_repository_with_orchestration(repository, orchestration):
 
     print("Fields Orchestration = {} Repository = {}".format(len(orchestration.fields_by_tag), len(repository.fields_by_tag)))
     
@@ -76,9 +67,65 @@ if __name__ == '__main__':
         print("The following {} discrepancies were found".format(len(message_errors)))
         for error in message_errors:
             print(error)
-          
-
-
 
     if len(field_errors) > 0 or len(message_errors) > 0:
         sys.exit(-1)
+
+
+def validate_repository(repository):
+    print('Validating repository')
+    data_type_errors = []
+    for field in repository.fields_by_tag.values():
+        try:
+            data_type = repository.data_types[field.type]
+        except KeyError:
+            data_type_errors.append('field tag={} has type={} but there is no such data type defined'.format(field.id, field.type))
+    if len(data_type_errors) == 0:
+        print('All data types referenced by fields are defined')
+    else:
+        for error in data_type_errors:
+            print(error)
+
+
+def validate_orchestration(orchestration):
+    print('Validating orchestration')
+    data_type_errors = []
+    for field in orchestration.fields_by_tag.values():
+        try:
+            data_type = orchestration.data_types[field.type]
+        except KeyError:
+            try:
+                code_set = orchestration.code_sets[field.type]
+            except KeyError:
+                data_type_errors.append('field tag={} has type={} but there is no such data type or code set defined'.format(field.id, field.type))
+    if len(data_type_errors) == 0:
+        print('All data types referenced by fields are defined')
+    else:
+        for error in data_type_errors:
+            print(error)
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument('--orchestration', metavar='file', help='The orchestration to load')
+    parser.add_argument('--repository', metavar='directory', help='A directory containing a repository to load e.g. fix_repository_2010_edition_20200402/FIX.4.4/Base')
+
+    args = parser.parse_args()
+
+    if args.orchestration and args.repository:
+        orchestration = Orchestration(args.orchestration)
+        validate_orchestration(orchestration)
+        repository = Repository(args.repository)
+        validate_repository(repository)
+        compare_repository_with_orchestration(repository, orchestration)
+    elif args.repository:
+        repository = Repository(args.repository)
+        validate_repository(repository)
+    elif args.orchestration:
+        orchestration = Orchestration(args.orchestration)
+        validate_orchestration(orchestration)
+
+
+    
