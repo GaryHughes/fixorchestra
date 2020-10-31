@@ -1,6 +1,6 @@
 # Overview
 
-This repository contains a set of scripts for parsing [FIX protocol](https://www.fixtrading.org/online-specification/) standards representations, comparing them for accuracy and converting between formats. It currently supports the [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/) and the [FIX Repository](https://www.fixtrading.org/standards/fix-repository/).
+This repository contains a set of scripts for parsing [FIX protocol](https://www.fixtrading.org/online-specification/) standards representations, checking them for internal consistency, comparing them for accuracy, and converting between formats. It currently supports the [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/) and the [FIX Repository](https://www.fixtrading.org/standards/fix-repository/).
 
 Orchestrations provided by the FIX Trading Community can be downloaded [here](https://github.com/FIXTradingCommunity/orchestrations).
 
@@ -210,11 +210,11 @@ ExecutionReport {
 ```
 
 ## fixaudit
-Utility to compare a FIX Orchestration and FIX Repository
+Utility to check the internal consistency of a FIX Orchestration or Repository and to compare a FIX Orchestration with a FIX Repository.
 
 ```
 $ ./fixaudit.py --help
-usage: fixaudit.py [-h] --orchestration file --repository directory
+usage: fixaudit.py [-h] [--orchestration file] [--repository directory]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -222,6 +222,28 @@ optional arguments:
   --repository directory
                         A directory containing a repository to load e.g.
                         fix_repository_2010_edition_20200402/FIX.4.4/Base
+```
+
+```
+$ ./fixaudit.py --repository ~/Downloads/fix_repository_2010_edition_20200402/FIX.4.2/Base
+Validating repository
+field tag=18 has type=MultipleValueString but there is no such data type defined
+field tag=90 has type=Length but there is no such data type defined
+field tag=93 has type=Length but there is no such data type defined
+field tag=95 has type=Length but there is no such data type defined
+field tag=212 has type=Length but there is no such data type defined
+field tag=276 has type=MultipleValueString but there is no such data type defined
+field tag=277 has type=MultipleValueString but there is no such data type defined
+field tag=348 has type=Length but there is no such data type defined
+field tag=350 has type=Length but there is no such data type defined
+field tag=352 has type=Length but there is no such data type defined
+field tag=354 has type=Length but there is no such data type defined
+field tag=356 has type=Length but there is no such data type defined
+field tag=358 has type=Length but there is no such data type defined
+field tag=360 has type=Length but there is no such data type defined
+field tag=362 has type=Length but there is no such data type defined
+field tag=364 has type=Length but there is no such data type defined
+field tag=445 has type=Length but there is no such data type defined
 ```
 
 ```
