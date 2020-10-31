@@ -78,6 +78,11 @@ def validate_repository(repository):
     for field in repository.fields_by_tag.values():
         try:
             data_type = repository.data_types[field.type]
+            if data_type.base_type != None:
+                try:
+                    base_type = repository.data_types[data_type.base_type]
+                except KeyError:
+                    data_type_errors.append('data type {} has base type {} but there is no such data type defined'.format(data_type.name, data_type.base_type))
         except KeyError:
             data_type_errors.append('field tag={} has type={} but there is no such data type defined'.format(field.id, field.type))
     if len(data_type_errors) == 0:
@@ -93,6 +98,11 @@ def validate_orchestration(orchestration):
     for field in orchestration.fields_by_tag.values():
         try:
             data_type = orchestration.data_types[field.type]
+            if data_type.base_type != None:
+                try:
+                    base_type = orchestration.data_types[data_type.base_type]
+                except KeyError:
+                    data_type_errors.append('data type {} has base type {} but there is no such data type defined'.format(data_type.name, data_type.base_type))
         except KeyError:
             try:
                 code_set = orchestration.code_sets[field.type]
