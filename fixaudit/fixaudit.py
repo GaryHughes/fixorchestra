@@ -28,6 +28,18 @@ if __name__ == '__main__':
                 field_errors.append("field Id = {} has Name = '{}' in the repository and Name = '{}' in the orchestration".format(r_id, r_field.name, o_field.name))
             if o_field.added != r_field.added:
                 field_errors.append("field Id = {} has Added = '{}' in the repository and Added = '{}' in the orchestration".format(r_id, r_field.added, o_field.added))
+
+            o_values = frozenset(orchestration.field_values(o_field))
+            r_values = frozenset(repository.field_values(r_field))
+            if len(o_values) != len(r_values):
+                field_errors.append("field Name = {} has {} values in the repository and {} values in the orchestration".format(r_field.name, len(r_values), len(o_values)))
+            o_extras = o_values - r_values
+            r_extras = r_values - o_values
+            if len(o_extras) > 0:
+                print("field Name = {} has the following values in the orchestration not in the corresponding repostory field {}".format(r_field.name, [value.name for value in o_extras]))
+            if len(r_extras) > 0:
+                print("field Name = {} has the following values in rhe repository not in the corresponding orchestration field {}".format(r_field.name, [value.symbolic_name for value in r_extras]))
+   
         except KeyError:
             print("orchestration does not contain a field with Id = {}".format(r_id))
     

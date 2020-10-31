@@ -21,13 +21,21 @@ class DataType:
 
 
 class Code:
-
+    # This class needs to be kept in sync with repository.Enum because fixaudit.py stores 
+    # instances of these classes in Sets. Specifically both implementations have to be hashable 
+    # and they have to be hashing the same thing.
     def __init__(self, id, name, value, added, synopsis):
         self.id = id
         self.name = name
         self.value = value
         self.added = added
         self.synopsis = synopsis
+
+    def __hash__(self):
+        return hash(self.value)
+
+    def __eq__(self, rhs):
+        return self.value == rhs.value
 
 
 class CodeSet:
@@ -40,7 +48,9 @@ class CodeSet:
         self.codes = codes
 
 class Field:
-
+    # This class needs to be kept in sync with repository.Field because fixaudit.py stores 
+    # nstances of these classes in Sets. Specifically both implementations have to be hashable 
+    # and they have to be hashing the same thing.
     def __init__(self, id, name, type, added, synopsis):
         self.id = id
         self.name = name
@@ -49,7 +59,7 @@ class Field:
         self.synopsis = synopsis
 
     def __hash__(self):
-        return hash((self.id))
+        return hash(self.id)
 
     def __eq__(self, rhs):
         return self.id == rhs.id
@@ -136,6 +146,13 @@ class Orchestration:
 
     def message_fields(self, message):
         return self.references_to_fields(message.references, 0)
+
+
+    def field_values(self, field):
+        try:
+            return self.code_sets[field.type].codes
+        except KeyError:
+            return []
 
 
     def extract_synopsis(self, element):

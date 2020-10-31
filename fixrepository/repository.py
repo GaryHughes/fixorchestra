@@ -13,16 +13,27 @@ class DataType:
         self.added = added
 
 class Enum:
-
-    def __init__(self, id, value, symbolicName, description, added):
+    # This class needs to be kept in sync with orchestra.Code because fixaudit.py stores 
+    # instances of these classes in Sets. Specifically both implementations have to be hashable 
+    # and they have to be hashing the same thing.
+    def __init__(self, id, value, symbolic_name, description, added):
         self.id = id
         self.value = value
-        self.symbolicName = symbolicName
+        self.symbolic_name = symbolic_name
         self.description = description
         self.added = added
 
-class Field:
+    def __hash__(self):
+        return hash(self.value)
 
+    def __eq__(self, rhs):
+        return self.value == rhs.value
+
+
+class Field:
+    # This class needs to be kept in sync with orchestra.Field because fixaudit.py stores 
+    # nstances of these classes in Sets. Specifically both implementations have to be hashable 
+    # and they have to be hashing the same thing.
     def __init__(self, id, name, type, description, added):
         self.id = id
         self.name = name
@@ -31,7 +42,7 @@ class Field:
         self.added = added
     
     def __hash__(self):
-        return hash((self.id))
+        return hash(self.id)
 
     def __eq__(self, rhs):
         return self.id == rhs.id
@@ -274,8 +285,16 @@ class Repository:
             print("Can't find MsgContent with ComponentID = {}".format(componentID))
         return fields
     
+    
     def message_fields(self, message):
         return self.extract_fields(message.componentID, 0)
+
+
+    def field_values(self, field):
+        try:
+            return self.enums[field.id]
+        except KeyError:
+            return []    
 
 
 def dump_field(repository, tag_or_name):
@@ -296,7 +315,7 @@ def dump_field(repository, tag_or_name):
         enums = repository.enums[field.id]
         print("    Values {")
         for enum in enums:
-            print("        {} ({}, {}, {})".format(enum.value, enum.symbolicName, enum.added, enum.description))
+            print("        {} ({}, {}, {})".format(enum.value, enum.symbolic_name, enum.added, enum.description))
         print("    }")
     except KeyError:
         pass
