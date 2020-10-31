@@ -383,18 +383,31 @@ class Orchestration:
         #         <dc:source>FIX Unified Repository</dc:source>
         #     </fixr:metadata>
         metadata = ET.SubElement(root, '{%s}metadata' % (fixr_namespace))
-        title = ET.SubElement(metadata, '{%s}title' % (dc_namespace))
-        title.text = 'Orchestra'
-        creator = ET.SubElement(metadata, '{%s}creator' % (dc_namespace))
-        creator.text = 'https://github.com/GaryHughes/fixorchestra'
-        publisher = ET.SubElement(metadata, '{%s}publisher' % (dc_namespace))
-        publisher.text = 'Gary Hughes'
-        date = ET.SubElement(metadata, '{%s}date' % (dc_namespace))
-        date.text = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f UTC')
-        format = ET.SubElement(metadata, '{%s}format' % (dc_namespace))
-        format.text = 'Orchestra schema'
-        source = ET.SubElement(metadata, '{%s}source' % (dc_namespace))
-        source.text = 'FIX Unified Repository'
+        ET.SubElement(metadata, '{%s}title' % (dc_namespace)).text = 'Orchestra'
+        ET.SubElement(metadata, '{%s}creator' % (dc_namespace)).text = 'https://github.com/GaryHughes/fixorchestra'
+        ET.SubElement(metadata, '{%s}publisher' % (dc_namespace)).text = 'Gary Hughes'
+        ET.SubElement(metadata, '{%s}date' % (dc_namespace)).text = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f UTC')
+        ET.SubElement(metadata, '{%s}format' % (dc_namespace)).text = 'Orchestra schema'
+        ET.SubElement(metadata, '{%s}source' % (dc_namespace)).text = 'FIX Unified Repository'
+
+
+    def create_xml_data_types(self, root):
+        # <fixr:datatypes>
+        #   <fixr:datatype name="NumInGroup" baseType="int" added="FIX.4.3">
+        #       <fixr:annotation>
+        #           <fixr:documentation purpose="SYNOPSIS">
+        #               int field representing the number of entries in a repeating group. Value must be positive.
+        #           </fixr:documentation>
+        #       </fixr:annotation>
+        #   </fixr:datatype>
+        data_types = ET.SubElement(root, '{%s}datatypes' % (fixr_namespace))
+        for source in self.data_types.values():
+            data_type = ET.SubElement(data_types, '{%s}datatype' % (fixr_namespace), name=source.name, added=source.added)
+            if source.base_type:
+                data_type.attrib['baseType'] = source.base_type
+            annotation = ET.SubElement(data_type, '{%s}annotation' % (fixr_namespace))
+            ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source.synopsis
+
 
 
     def to_xml(self):
@@ -404,7 +417,8 @@ class Orchestration:
             ET.register_namespace(prefix, uri)
 
         root = ET.Element('{%s}repository' % (fixr_namespace))
-        self.create_xml_metadata(root)        
+        self.create_xml_metadata(root)
+        self.create_xml_data_types(root)
 
       
         return root

@@ -10,6 +10,7 @@ class DataType:
         self.name = name
         self.base_type = base_type
         self.description = description
+        self.synopsis = description
         self.added = added
 
 class Enum:
