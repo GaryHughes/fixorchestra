@@ -71,7 +71,7 @@ if __name__ == '__main__':
             message_errors.append("message MsgType = {} repository has the following fields not in the corresponding orchestration message {}".format(msg_type, [ field.name for field in r_extras]))    
       
     if len(message_errors) == 0:
-        print("All messages have the same Name values in the repository and the orchstration")
+        print("All messages have the same Name values in the repository and the orchestration")
     else:
         print("The following {} discrepancies were found".format(len(message_errors)))
         for error in message_errors:

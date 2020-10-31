@@ -1,11 +1,15 @@
 # Overview
 
-This repository contains a set of scripts for parsing [FIX protocol](https://www.fixtrading.org/online-specification/) standards representations and comparing them for accuracy. It currently supports the [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/) and the [FIX Repository](https://www.fixtrading.org/standards/fix-repository/).
+This repository contains a set of scripts for parsing [FIX protocol](https://www.fixtrading.org/online-specification/) standards representations, comparing them for accuracy and converting between formats. It currently supports the [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/) and the [FIX Repository](https://www.fixtrading.org/standards/fix-repository/).
 
 Orchestrations provided by the FIX Trading Community can be downloaded [here](https://github.com/FIXTradingCommunity/orchestrations).
 
-The latest version of the repository can be downloaded [here](https://www.fixtrading.org/packages/fix-repository-2010/)
+The latest version of the repository can be downloaded [here](https://www.fixtrading.org/packages/fix-repository-2010/).
 
+1. [fixorchestra](#fixorchestra)
+1. [fixrepository](#fixrepository)
+1. [fixaudit](#fixaudit)
+1. [fixreptorc](#fixreptorc)
 
 ## fixorchestra
 FIX Orchestration parser and utilities
@@ -229,4 +233,29 @@ The following 2 discrepancies were found
 message MsgType = A has 46 fields in the repository and 43 fields in the orchestration
 message MsgType = A repository has the following fields not in the corresponding orchestration message ['NoMsgTypes', 'MsgDirection', 'RefMsgType']```
 
+```
+
+## fixreptorc
+Convert a FIX Repository to a FIX Orchestration
+
+```
+$ ./fixreptorc.py --help
+usage: fixreptorc.py [-h] --repository directory
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --repository directory
+                        A directory containing a repository to load e.g. fix_repository_2010_edition_20200402/FIX.4.4/Base
+```
+
+```
+# Generate an orchestration from a repository
+$ ./fixreptorc.py --repository ~/Downloads/fix_repository_2010_edition_20200402/FIX.4.4/Base > fix44_orchestration.xml
+
+# Sanity check the result
+$ ./fixaudit.py --repository ~/Downloads/fix_repository_2010_edition_20200402/FIX.4.4/Base --orchestration fix44_orchestration.xml
+Fields Orchestration = 912 Repository = 912
+All fields have the same Name and Added values in the repository and the orchestration
+Messages Orchestration = 93 Repository = 93
+All messages have the same Name values in the repository and the orchestration
 ```
