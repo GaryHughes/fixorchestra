@@ -618,7 +618,11 @@ class Orchestration:
         #       </fixr:annotation>
         #    </fixr:group>
         groups = ET.SubElement(root, '{%s}groups' % (fixr_namespace))
-
+        for source in self.groups.values():
+            group = ET.SubElement(groups, '{%s}group' % (fixr_namespace), id=str(source.id), name=source.name, category=source.category)
+            # TODO - numInGroup
+            self.populate_xml_pedigree(group, source.pedigree)
+            self.create_xml_references(group, source.references)
 
 
     def create_xml_messages(self, root):
@@ -749,13 +753,18 @@ def list_fields(orchestration):
         print('{}\t{} ({})'.format(field.id, field.name, field.type))
 
 
-def list_enumerated_fields(orxchestration):
+def list_enumerated_fields(orchestration):
     for field in orchestration.fields_by_tag.values():
         try:
-            code_set = orchestration.code_sets[field.type]
+            _ = orchestration.code_sets[field.type]
             print('{}\t{} ({})'.format(field.id, field.name, field.type))
         except KeyError:
             pass
+
+
+def list_groups(orchestration):
+    for group in orchestration.groups.values():
+        print('{} (Id={}, Category={}, Pedigree={})'.format(group.name, group.id, group.category, group.pedigree))
 
 
 if __name__ == '__main__':
@@ -767,6 +776,7 @@ if __name__ == '__main__':
     parser.add_argument('--list-messages', default=False, action='store_true', help='List all the messages in this orchestration')
     parser.add_argument('--list-fields', default=False, action='store_true', help='List all the fields in this orchestration')
     parser.add_argument('--list-enumerated-fields', default=False, action='store_true', help='List all fields with an enumerated value')
+    parser.add_argument('--list-groups', default=False, action='store_true', help='List all groups in this orchestration')
 
     args = parser.parse_args()
 
@@ -787,5 +797,7 @@ if __name__ == '__main__':
     if args.list_enumerated_fields:
         list_enumerated_fields(orchestration)
 
+    if args.list_groups:
+        list_groups(orchestration)
 
 

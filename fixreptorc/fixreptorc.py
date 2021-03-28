@@ -65,6 +65,7 @@ if __name__ == '__main__':
     for source in repository.data_types.values():
         target = orc.DataType(source.name, source.base_type, source.description, source.pedigree)
         orchestration.data_types[target.name] = target
+    
     # code sets
     for source in repository.fields_by_tag.values():
         try:
@@ -85,12 +86,18 @@ if __name__ == '__main__':
         orchestration.fields_by_name[target.name] = target
 
     # groups
-
+    # TODO - This does not work for FIX.4.2 - later versions only
+    # TODO - FIX.4.4 contains MsgTypeGrp which isn't defined
+    # TODO - FIX.4.4 contains Hop which has type ImplicitBlock
+    for source in repository.groups_by_id.values():
+        references = build_references(source.componentID)
+        target = orc.Group(source.componentID, source.name, source.categoryID, source.description, source.pedigree, references)
+        orchestration.groups[target.id] = target
 
     # components
     for source in repository.components.values():
         references = build_references(source.componentID)
-        target = orc.Component(source.componentID, source.name, source.categoryId, source.description, source.pedigree, references)
+        target = orc.Component(source.componentID, source.name, source.categoryID, source.description, source.pedigree, references)
         orchestration.components[target.id] = target
 
     # messages

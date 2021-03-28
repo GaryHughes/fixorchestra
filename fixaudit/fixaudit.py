@@ -9,16 +9,33 @@ from fixrepository.repository import *
 
 def compare_repository_with_orchestration(repository, orchestration):
 
-    print("Fields Orchestration = {} Repository = {}".format(len(orchestration.fields_by_tag), len(repository.fields_by_tag)))
-    
     data_type_errors = []
     # TODO
 
     code_set_errors = []
     # TODO
 
+    print('Groups Orchestration = {} Repository = {}'.format(len(orchestration.groups), len(repository.groups_by_id)))
+
     group_errors = []
-    # TODO
+    for r_id, r_group in repository.groups_by_id.items():
+        try:
+            o_group = orchestration.groups[r_id]
+            if o_group.name != r_group.name:
+                group_errors.append("group Id = {} has Name = '{}' in the repository and Name = '{}' in the orchestration".format(r_id, r_group.name, o_group.name))
+            if r_group.pedigree != o_group.pedigree:
+                group_errors.append('group Id = {} has pedigree {} in the repository and pedigree {} in the orchestration'.format(r_id, str(r_group.pedigree), str(o_group.pedigree))) 
+        except KeyError:
+            group_errors.append("orchestration does not contain a component with Id = {}".format(r_id))
+    
+    if len(group_errors) == 0:
+        print("All groups have the same name and pedigree in the repository and the orchestration")
+    else:
+        print("The following {} discrepancies were found".format(len(group_errors)))
+        for error in group_errors:
+            print(error)
+
+    print("Fields Orchestration = {} Repository = {}".format(len(orchestration.fields_by_tag), len(repository.fields_by_tag)))
 
     field_errors = []
     for r_id, r_field in repository.fields_by_tag.items():
@@ -35,9 +52,9 @@ def compare_repository_with_orchestration(repository, orchestration):
             o_extras = o_values - r_values
             r_extras = r_values - o_values
             if len(o_extras) > 0:
-                print("field Name = {} has the following values in the orchestration not in the corresponding repostory field {}".format(r_field.name, [value.name for value in o_extras]))
+                field_errors.append("field Name = {} has the following values in the orchestration not in the corresponding repostory field {}".format(r_field.name, [value.name for value in o_extras]))
             if len(r_extras) > 0:
-                print("field Name = {} has the following values in rhe repository not in the corresponding orchestration field {}".format(r_field.name, [value.symbolic_name for value in r_extras]))
+                field_errors.append("field Name = {} has the following values in rhe repository not in the corresponding orchestration field {}".format(r_field.name, [value.symbolic_name for value in r_extras]))
    
         except KeyError:
             print("orchestration does not contain a field with Id = {}".format(r_id))

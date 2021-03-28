@@ -92,7 +92,7 @@ class Component:
     def __init__(self, componentID, componentType, categoryID, name, description, pedigree):
         self.componentID = componentID
         self.componentType = componentType
-        self.categoryId = categoryID
+        self.categoryID = categoryID
         self.name = name
         self.description = description
         self.pedigree = pedigree
@@ -137,6 +137,8 @@ class Repository:
     fields_by_name = {}         # Field.name.lower() -> Field
     data_types = {}             # DataType.name -> DataType
     components = {}             # Component.Name -> Component
+    components_by_id = {}       # Component.componentID -> Component
+    groups_by_id = {}           # Component.componentID -> Component (this is a subset of components/components_by_id)   
     msg_contents = {}           # MsgContent.componentID -> [MsgContent]
     messages = []               # [Message]
     messages_by_msg_type = {}   # Message.msg_type -> Message
@@ -190,6 +192,9 @@ class Repository:
                 self.extract_pedigree(componentElement)
             )
             self.components[component.name] = component
+            self.components_by_id[component.componentID] = component
+            if component.componentType.lower().find('repeating') >= 0:
+                self.groups_by_id[component.componentID] = component
 
   
     def load_data_types(self, directory):
@@ -311,7 +316,7 @@ class Repository:
             msgContent = MsgContent(
                 msgContentElement.find('ComponentID').text,
                 msgContentElement.find('TagText').text,
-                msgContentElement.find('Indent').text,
+                int(msgContentElement.find('Indent').text),
                 msgContentElement.find('Position').text,
                 msgContentElement.find('Reqd').text,
                 description.text if description is not None else None,
@@ -478,6 +483,9 @@ def list_enumerated_fields(repository):
         except KeyError:
             pass
 
+def list_components(repository):
+    for component in repository.components.values():
+        print(component.name)
 
 if __name__ == '__main__':
 
@@ -488,6 +496,7 @@ if __name__ == '__main__':
     parser.add_argument('--list-messages', default=False, action='store_true', help='List all the messages in this repository')
     parser.add_argument('--list-fields', default=False, action='store_true', help='List all the fields in this repository')
     parser.add_argument('--list-enumerated-fields', default=False, action='store_true', help='List all fields with an enumerated value')
+    parser.add_argument('--list-components', default=False, action='store_true', help='List all components in this repository')
 
     args = parser.parse_args()
 
@@ -507,3 +516,6 @@ if __name__ == '__main__':
 
     if args.list_enumerated_fields:
         list_enumerated_fields(repository)
+
+    if args.list_components:
+        list_components(repository)
