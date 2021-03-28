@@ -25,9 +25,9 @@ def indent(elem, level=0):
             elem.tail = j
     return elem
 
-def build_references(componentID):
+def build_references(repository, componentID):
     references = []
-    for content in repository.msg_contents[source.componentID]:
+    for content in repository.msg_contents[componentID]:
         if content.reqd == '1':
             presence = 'required'
         else:
@@ -37,12 +37,16 @@ def build_references(componentID):
             references.append(orc.Reference(field.id, None, content.componentID, presence, content.description, content.pedigree))
         except ValueError:
             try:
-                component = repository.components[content.tagText]
-                references.append(orc.Reference(None, None, component.componentID, presence, content.description, content.pedigree))
+                group = repository.groups_by_name[content.tagText]
+                references.append(orc.Reference(None, group.componentID, None, presence, content.description, content.pedigree))
             except KeyError:
-                # TODO
-                print('UNKNOWN REFERENCE ' + str(content))
-                pass
+                try:
+                    component = repository.components[content.tagText]
+                    references.append(orc.Reference(None, None, component.componentID, presence, content.description, content.pedigree))
+                except KeyError:
+                    # TODO
+                    sys.stderr.writelines('UNKNOWN REFERENCE ' + str(content))
+                    pass
     return references
 
 
@@ -90,19 +94,19 @@ if __name__ == '__main__':
     # TODO - FIX.4.4 contains MsgTypeGrp which isn't defined
     # TODO - FIX.4.4 contains Hop which has type ImplicitBlock
     for source in repository.groups_by_id.values():
-        references = build_references(source.componentID)
+        references = build_references(repository, source.componentID)
         target = orc.Group(source.componentID, source.name, source.categoryID, source.description, source.pedigree, references)
         orchestration.groups[target.id] = target
 
     # components
     for source in repository.components.values():
-        references = build_references(source.componentID)
+        references = build_references(repository, source.componentID)
         target = orc.Component(source.componentID, source.name, source.categoryID, source.description, source.pedigree, references)
         orchestration.components[target.id] = target
 
     # messages
     for source in repository.messages_by_msg_type.values():
-        references = build_references(source.componentID)
+        references = build_references(repository, source.componentID)
         target = orc.Message(source.componentID, source.name, source.msgType, source.categoryID, source.description, source.pedigree, references)
         orchestration.messages_by_msg_type[target.msg_type] = target
         orchestration.messages_by_name[target.name] = target

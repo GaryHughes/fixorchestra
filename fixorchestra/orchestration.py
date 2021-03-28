@@ -574,7 +574,13 @@ class Orchestration:
                     annotation = ET.SubElement(componentRef, '{%s}annotation' % (fixr_namespace))
                     ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = reference.synopsis
             elif reference.group_id:
-                pass    
+                groupRef = ET.SubElement(root, '{%s}groupRef' % (fixr_namespace), id=str(reference.group_id))
+                self.populate_xml_pedigree(groupRef, reference.pedigree)
+                if reference.presence:
+                    groupRef.attrib['presence'] = reference.presence
+                if reference.synopsis:
+                    annotation = ET.SubElement(groupRef, '{%s}annotation' % (fixr_namespace))
+                    ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = reference.synopsis
 
 
     def create_xml_components(self, root):

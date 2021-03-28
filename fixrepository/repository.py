@@ -138,6 +138,7 @@ class Repository:
     data_types = {}             # DataType.name -> DataType
     components = {}             # Component.Name -> Component
     components_by_id = {}       # Component.componentID -> Component
+    groups_by_name = {}         # Component.componentID -> Component (this is a subset of components/components_by_id)
     groups_by_id = {}           # Component.componentID -> Component (this is a subset of components/components_by_id)   
     msg_contents = {}           # MsgContent.componentID -> [MsgContent]
     messages = []               # [Message]
@@ -194,7 +195,9 @@ class Repository:
             self.components[component.name] = component
             self.components_by_id[component.componentID] = component
             if component.componentType.lower().find('repeating') >= 0:
+                self.groups_by_name[component.name] = component
                 self.groups_by_id[component.componentID] = component
+
 
   
     def load_data_types(self, directory):
