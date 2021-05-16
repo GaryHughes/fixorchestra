@@ -522,3 +522,6 @@ def main():
 
     if args.list_components:
         list_components(repository)
+
+if __name__ == '__main__':
+    main()

@@ -207,3 +207,6 @@ def main():
     elif args.orchestration:
         orchestration = Orchestration(args.orchestration)
         validate_orchestration(orchestration)
+
+if __name__ == '__main__':
+    main()

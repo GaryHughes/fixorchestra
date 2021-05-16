@@ -806,4 +806,5 @@ def main():
     if args.list_groups:
         list_groups(orchestration)
 
-
+if __name__ == '__main__':
+    main()
