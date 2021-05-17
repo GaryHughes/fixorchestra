@@ -1,3 +1,5 @@
+[![Python package](https://github.com/GaryHughes/fixorchestra/actions/workflows/python-package.yml/badge.svg)](https://github.com/GaryHughes/fixorchestra/actions/workflows/python-package.yml)
+[![Upload Python Package](https://github.com/GaryHughes/fixorchestra/actions/workflows/python-publish.yml/badge.svg)](https://github.com/GaryHughes/fixorchestra/actions/workflows/python-publish.yml)
 # Overview
 
 This repository contains a set of scripts for parsing [FIX protocol](https://www.fixtrading.org/online-specification/) standards representations, checking them for internal consistency, comparing them for accuracy, and converting between formats. It currently supports the [FIX Orchestra](https://www.fixtrading.org/standards/fix-orchestra/) and the [FIX Repository](https://www.fixtrading.org/standards/fix-repository/).
