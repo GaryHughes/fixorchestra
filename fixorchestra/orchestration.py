@@ -773,7 +773,7 @@ def list_groups(orchestration):
         print('{} (Id={}, Category={}, Pedigree={})'.format(group.name, group.id, group.category, group.pedigree))
 
 
-if __name__ == '__main__':
+def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--orchestration', required=True, metavar='file', help='The orchestration to load')
@@ -806,4 +806,5 @@ if __name__ == '__main__':
     if args.list_groups:
         list_groups(orchestration)
 
-
+if __name__ == '__main__':
+    main()
