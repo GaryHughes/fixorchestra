@@ -462,19 +462,23 @@ class Orchestration:
         ET.SubElement(metadata, '{%s}format' % (dc_namespace)).text = 'Orchestra schema'
         ET.SubElement(metadata, '{%s}source' % (dc_namespace)).text = 'FIX Unified Repository'
 
+    def ep_is_valid(self, ep):
+        if ep is None or ep == '-1':
+            return False
+        return True
 
     def populate_xml_pedigree(self, element, pedigree):
         if pedigree.added:
             element.attrib["added"] = pedigree.added
-        if pedigree.addedEP:
+        if self.ep_is_valid(pedigree.addedEP):
             element.attrib["addedEP"] = pedigree.addedEP
         if pedigree.updated:
             element.attrib["updated"] = pedigree.updated
-        if pedigree.updatedEP:
+        if self.ep_is_valid(pedigree.updatedEP):
             element.attrib["updatedEP"] = pedigree.updatedEP
         if pedigree.deprecated:
             element.attrib["deprecated"] = pedigree.deprecated
-        if pedigree.deprecatedEP:
+        if self.ep_is_valid(pedigree.deprecatedEP):
             element.attrib["deprecatedEP"] = pedigree.deprecatedEP
 
 
