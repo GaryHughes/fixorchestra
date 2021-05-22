@@ -203,7 +203,7 @@ class Orchestration:
                 result = result + self.references_to_fields(group.references, depth + 1)
             elif reference.component_id:
                 component = self.components[reference.component_id]
-                result = result + self.references_to_fields(component.references, depth + 1)
+                result = result + self.references_to_fields(component.references, depth)
         return result
 
 
