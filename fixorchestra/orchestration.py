@@ -777,6 +777,11 @@ def list_groups(orchestration):
         print('{} (Id={}, Category={}, Pedigree={})'.format(group.name, group.id, group.category, group.pedigree))
 
 
+def list_components(repository):
+    for component in repository.components.values():
+        print('{} (Id={})'.format(component.name, component.id))
+
+
 def main():
 
     parser = argparse.ArgumentParser()
@@ -787,6 +792,7 @@ def main():
     parser.add_argument('--list-fields', default=False, action='store_true', help='List all the fields in this orchestration')
     parser.add_argument('--list-enumerated-fields', default=False, action='store_true', help='List all fields with an enumerated value')
     parser.add_argument('--list-groups', default=False, action='store_true', help='List all groups in this orchestration')
+    parser.add_argument('--list-components', default=False, action='store_true', help='List all components in this orchestration')
 
     args = parser.parse_args()
 
@@ -809,6 +815,10 @@ def main():
 
     if args.list_groups:
         list_groups(orchestration)
+
+    if args.list_components:
+        list_components(orchestration)
+
 
 if __name__ == '__main__':
     main()
