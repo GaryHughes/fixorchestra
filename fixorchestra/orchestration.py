@@ -186,6 +186,7 @@ class Orchestration:
         self.filename = filename
         tree = ET.parse(filename)
         repository = tree.getroot()
+        self.load_meta_data(repository)
         self.load_data_types(repository)
         self.load_code_sets(repository)
         self.load_fields(repository)
@@ -240,6 +241,11 @@ class Orchestration:
             element.get('deprecated'),
             element.get('deprecatedEP')
         )
+
+
+    def load_meta_data(self, repository):
+        self.version = repository.get('version')
+
 
     def load_data_types(self, repository):
         # <fixr:datatypes>
