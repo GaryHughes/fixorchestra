@@ -34,7 +34,7 @@ def build_references(repository, componentID):
             presence = 'optional'
         try:
             field = repository.fields_by_tag[int(content.tagText)]
-            references.append(orc.Reference(field.id, None, content.componentID, presence, content.description, content.pedigree))
+            references.append(orc.Reference(field.id_, None, content.componentID, presence, content.description, content.pedigree))
         except ValueError:
             try:
                 group = repository.groups_by_name[content.tagText]
@@ -73,20 +73,20 @@ def main():
     # code sets
     for source in repository.fields_by_tag.values():
         try:
-            enum = repository.enums[source.id]
-            codes = [orc.Code(value.id * 1000 + index, value.symbolic_name, value.value, value.description, value.pedigree) for index, value in enumerate(enum, start=1)]
-            target = orc.CodeSet(source.id, source.name + 'CodeSet', source.type, source.description, source.pedigree, codes)
+            enum = repository.enums[source.id_]
+            codes = [orc.Code(value.id_ * 1000 + index, value.symbolic_name, value.value, value.description, value.pedigree) for index, value in enumerate(enum, start=1)]
+            target = orc.CodeSet(source.id_, source.name + 'CodeSet', source.type_, source.description, source.pedigree, codes)
             orchestration.code_sets[target.name] = target
         except KeyError:
             pass
 
     # fields
     for source in repository.fields_by_tag.values():
-        type = source.type
-        if source.id in repository.enums:
-            type = source.name + 'CodeSet'
-        target = orc.Field(source.id, source.name, type, source.description, source.pedigree)
-        orchestration.fields_by_tag[target.id] = target
+        type_ = source.type_
+        if source.id_ in repository.enums:
+            type_ = source.name + 'CodeSet'
+        target = orc.Field(source.id_, source.name, type_, source.description, source.pedigree)
+        orchestration.fields_by_tag[target.id_] = target
         orchestration.fields_by_name[target.name] = target
 
     # groups
@@ -96,13 +96,13 @@ def main():
     for source in repository.groups_by_id.values():
         references = build_references(repository, source.componentID)
         target = orc.Group(source.componentID, source.name, source.categoryID, source.description, source.pedigree, references)
-        orchestration.groups[target.id] = target
+        orchestration.groups[target.id_] = target
 
     # components
     for source in repository.components.values():
         references = build_references(repository, source.componentID)
         target = orc.Component(source.componentID, source.name, source.categoryID, source.description, source.pedigree, references)
-        orchestration.components[target.id] = target
+        orchestration.components[target.id_] = target
 
     # messages
     for source in repository.messages_by_msg_type.values():

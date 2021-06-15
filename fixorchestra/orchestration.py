@@ -73,8 +73,8 @@ class Code:
     # This class needs to be kept in sync with repository.Enum because fixaudit.py stores 
     # instances of these classes in Sets. Specifically both implementations have to be hashable 
     # and they have to be hashing the same thing.
-    def __init__(self, id, name, value, synopsis, pedigree):
-        self.id = id
+    def __init__(self, id_, name, value, synopsis, pedigree):
+        self.id_ = id_
         self.name = name
         self.value = value
         self.synopsis = synopsis
@@ -89,10 +89,10 @@ class Code:
 
 class CodeSet:
  
-    def __init__(self, id, name, type, synopsis, pedigree, codes):
-        self.id = id
+    def __init__(self, id_, name, type_, synopsis, pedigree, codes):
+        self.id_ = id_
         self.name = name
-        self.type = type
+        self.type_ = type_
         self.synopsis = synopsis
         self.pedigree = pedigree
         self.codes = codes
@@ -101,18 +101,18 @@ class Field:
     # This class needs to be kept in sync with repository.Field because fixaudit.py stores 
     # nstances of these classes in Sets. Specifically both implementations have to be hashable 
     # and they have to be hashing the same thing.
-    def __init__(self, id, name, type, synopsis, pedigree):
-        self.id = id
+    def __init__(self, id_, name, type_, synopsis, pedigree):
+        self.id_ = id_
         self.name = name
-        self.type = type
+        self.type_ = type_
         self.synopsis = synopsis
         self.pedigree = pedigree
 
     def __hash__(self):
-        return hash(self.id)
+        return hash(self.id_)
 
     def __eq__(self, rhs):
-        return self.id == rhs.id
+        return self.id_ == rhs.id_
 
 
 class Reference:
@@ -129,8 +129,8 @@ class Reference:
 
 class Component:
 
-    def __init__(self, id, name, category, synopsis, pedigree, references):
-        self.id = id
+    def __init__(self, id_, name, category, synopsis, pedigree, references):
+        self.id_ = id_
         self.name = name
         self.category = category
         self.synopsis = synopsis
@@ -139,8 +139,8 @@ class Component:
 
 class Group:
 
-    def __init__(self, id, name, category, synopsis, pedigree, references):
-        self.id = id
+    def __init__(self, id_, name, category, synopsis, pedigree, references):
+        self.id_ = id_
         self.name = name
         self.category = category
         self.synopsis = synopsis
@@ -149,8 +149,8 @@ class Group:
 
 class Message:
 
-    def __init__(self, id, name, msg_type, category, synopsis, pedigree, references):
-        self.id = id
+    def __init__(self, id_, name, msg_type, category, synopsis, pedigree, references):
+        self.id_ = id_
         self.name = name
         self.msg_type = msg_type
         self.category = category
@@ -171,11 +171,11 @@ class Orchestration:
 
     data_types = {}             # DataType.name -> DataType
     code_sets = {}              # CodeSet.name -> CodeSet
-    fields_by_tag = {}          # Field.id -> Field
+    fields_by_tag = {}          # Field.id_ -> Field
     fields_by_name = {}         # Field.name.lower() -> Field
-    components = {}             # Componnet.id -> Component
-    groups = {}                 # Group.id -> Group
-    messages = {}               # Message.id -> Message
+    components = {}             # Componnet.id_ -> Component
+    groups = {}                 # Group.id_ -> Group
+    messages = {}               # Message.id_ -> Message
     messages_by_msg_type = {}   # Message.msg_type -> Message
     messages_by_name = {}       # Message.name.lower() -> Message
     version = ''
@@ -214,7 +214,7 @@ class Orchestration:
 
     def field_values(self, field):
         try:
-            return self.code_sets[field.type].codes
+            return self.code_sets[field.type_].codes
         except KeyError:
             return []
 
@@ -324,7 +324,7 @@ class Orchestration:
                 self.extract_synopsis(fieldElement),
                 self.extract_pedigree(fieldElement)
             )
-            self.fields_by_tag[field.id] = field
+            self.fields_by_tag[field.id_] = field
             self.fields_by_name[field.name.lower()] = field
 
 
@@ -388,7 +388,7 @@ class Orchestration:
                 self.extract_pedigree(componentElement),
                 self.extract_references(componentElement)
             )
-            self.components[component.id] = component
+            self.components[component.id_] = component
 
     def load_groups(self, repository):
         # <fixr:groups>
@@ -420,7 +420,7 @@ class Orchestration:
                 self.extract_pedigree(groupElement),
                 self.extract_references(groupElement)
             )
-            self.groups[group.id] = group    
+            self.groups[group.id_] = group
 
 
     def load_messages(self, repository):
@@ -446,7 +446,7 @@ class Orchestration:
                 self.extract_pedigree(messageElement),
                 self.extract_references(structureElement)
             )
-            self.messages[message.id] = message
+            self.messages[message.id_] = message
             self.messages_by_msg_type[message.msg_type] = message
             self.messages_by_name[message.name.lower()] = message
 
@@ -520,10 +520,10 @@ class Orchestration:
         #       </fixr:code>
         code_sets = ET.SubElement(root, '{%s}codeSets' % (fixr_namespace))
         for source in self.code_sets.values():
-            code_set = ET.SubElement(code_sets, '{%s}codeSet' % (fixr_namespace), name=source.name, id=str(source.id), type=source.type)
+            code_set = ET.SubElement(code_sets, '{%s}codeSet' % (fixr_namespace), name=source.name, id=str(source.id_), type=source.type_)
             for source_code in source.codes:
                 # TODO sort attribute
-                code = ET.SubElement(code_set, '{%s}code' % (fixr_namespace), name=source_code.name, id=str(source_code.id), value=source_code.value)
+                code = ET.SubElement(code_set, '{%s}code' % (fixr_namespace), name=source_code.name, id=str(source_code.id_), value=source_code.value)
                 self.populate_xml_pedigree(code, source.pedigree)
                 annotation = ET.SubElement(code, '{%s}annotation' % (fixr_namespace))
                 ET.SubElement(annotation, '{%s}documentation' % (fixr_namespace), purpose='SYNOPSIS').text = source_code.synopsis
@@ -544,7 +544,7 @@ class Orchestration:
         fields = ET.SubElement(root, '{%s}fields' % (fixr_namespace))
         for source in self.fields_by_tag.values():
             # TODO abbrName
-            field = ET.SubElement(fields, '{%s}field' % (fixr_namespace), id=str(source.id), name=source.name, type=source.type)
+            field = ET.SubElement(fields, '{%s}field' % (fixr_namespace), id=str(source.id_), name=source.name, type=source.type_)
             self.populate_xml_pedigree(field, source.pedigree)
             annotation = ET.SubElement(field, '{%s}annotation' % (fixr_namespace))
             if source.synopsis:
@@ -605,7 +605,7 @@ class Orchestration:
         components = ET.SubElement(root, '{%s}components' % (fixr_namespace))
         for source in self.components.values():
             # TODO abbrName
-            component = ET.SubElement(components, '{%s}component' % (fixr_namespace), name=source.name, id=str(source.id), category=source.category)
+            component = ET.SubElement(components, '{%s}component' % (fixr_namespace), name=source.name, id=str(source.id_), category=source.category)
             self.populate_xml_pedigree(component, source.pedigree)
             self.create_xml_references(component, source.references)
             if source.synopsis:
@@ -635,7 +635,7 @@ class Orchestration:
         #    </fixr:group>
         groups = ET.SubElement(root, '{%s}groups' % (fixr_namespace))
         for source in self.groups.values():
-            group = ET.SubElement(groups, '{%s}group' % (fixr_namespace), id=str(source.id), name=source.name, category=source.category)
+            group = ET.SubElement(groups, '{%s}group' % (fixr_namespace), id=str(source.id_), name=source.name, category=source.category)
             # TODO - numInGroup
             self.populate_xml_pedigree(group, source.pedigree)
             self.create_xml_references(group, source.references)
@@ -662,7 +662,7 @@ class Orchestration:
         messages = ET.SubElement(root, '{%s}messages' % (fixr_namespace))
         for source in self.messages_by_msg_type.values():
             # TODO abbrName
-            message = ET.SubElement(messages, '{%s}message' % (fixr_namespace), name=source.name, id=str(source.id), msgType=source.msg_type, category=source.category)
+            message = ET.SubElement(messages, '{%s}message' % (fixr_namespace), name=source.name, id=str(source.id_), msgType=source.msg_type, category=source.category)
             self.populate_xml_pedigree(message, source.pedigree)
             structure = ET.SubElement(message, '{%s}structure' % (fixr_namespace))
             self.create_xml_references(structure, source.references)
@@ -704,12 +704,12 @@ def dump_field(orchestration, tag_or_name):
             print("Could not find a field with Tag or Name = '{}'".format(tag_or_name))
             return
     print(field.name + " {")
-    print("    Id    = " + str(field.id))
-    print("    Type  = " + field.type)
+    print("    Id    = " + str(field.id_))
+    print("    Type  = " + field.type_)
     print("    Pedigree = " + str(field.pedigree))
     print("    (" + field.synopsis + ")")
     try:
-        code_set = orchestration.code_sets[field.type]
+        code_set = orchestration.code_sets[field.type_]
         print("    Values {")
         for code in code_set.codes:
             name = code.name
@@ -725,15 +725,15 @@ def dump_references(orchestration, references, depth):
     for reference in references:
         if reference.field_id:
             field = orchestration.fields_by_tag[reference.field_id]
-            print(padding + '{} (Id = {}, Type = {}, Pedigree = {}, Presence = {})'.format(field.name, field.id, field.type, str(field.pedigree), reference.presence))
+            print(padding + '{} (Id = {}, Type = {}, Pedigree = {}, Presence = {})'.format(field.name, field.id_, field.type_, str(field.pedigree), reference.presence))
         elif reference.group_id:
             group = orchestration.groups[reference.group_id]
-            print(padding + group.name + " (Id = {}, Category = {}, Pedigree = {}, Presence  = {}) {{".format(group.id, group.category, str(group.pedigree), reference.presence))
+            print(padding + group.name + " (Id = {}, Category = {}, Pedigree = {}, Presence  = {}) {{".format(group.id_, group.category, str(group.pedigree), reference.presence))
             dump_references(orchestration, group.references, depth + 1)
             print(padding + "}")
         elif reference.component_id:
             component = orchestration.components[reference.component_id]
-            print(padding + component.name + " (Id = {}, Category = {}, Pedigree = {}, Presence = {}) {{".format(component.id, component.category, str(component.pedigree), reference.presence))
+            print(padding + component.name + " (Id = {}, Category = {}, Pedigree = {}, Presence = {}) {{".format(component.id_, component.category, str(component.pedigree), reference.presence))
             dump_references(orchestration, component.references, depth + 1)
             print(padding + "}")
 
@@ -748,7 +748,7 @@ def dump_message(orchestration, msg_type_or_name):
             print("Could not find a message with MsgType or Name = '{}'".format(msg_type_or_name))
             return
     print(message.name + " {")
-    print("    Id = " + message.id)
+    print("    Id = " + message.id_)
     print("    MsgType = " + message.msg_type)
     print("    Category = " + message.category)
     print("    Pedigree = " + str(message.pedigree))
@@ -766,26 +766,26 @@ def list_messages(orchestration):
 
 def list_fields(orchestration):
     for field in orchestration.fields_by_tag.values():
-        print('{}\t{} ({})'.format(field.id, field.name, field.type))
+        print('{}\t{} ({})'.format(field.id_, field.name, field.type_))
 
 
 def list_enumerated_fields(orchestration):
     for field in orchestration.fields_by_tag.values():
         try:
-            _ = orchestration.code_sets[field.type]
-            print('{}\t{} ({})'.format(field.id, field.name, field.type))
+            _ = orchestration.code_sets[field.type_]
+            print('{}\t{} ({})'.format(field.id_, field.name, field.type_))
         except KeyError:
             pass
 
 
 def list_groups(orchestration):
     for group in orchestration.groups.values():
-        print('{} (Id={}, Category={}, Pedigree={})'.format(group.name, group.id, group.category, group.pedigree))
+        print('{} (Id={}, Category={}, Pedigree={})'.format(group.name, group.id_, group.category, group.pedigree))
 
 
 def list_components(repository):
     for component in repository.components.values():
-        print('{} (Id={})'.format(component.name, component.id))
+        print('{} (Id={})'.format(component.name, component.id_))
 
 
 def main():
