@@ -146,18 +146,23 @@ def validate_orchestration(orchestration):
     group_errors = []
     component_errors = []
     for field in orchestration.fields_by_tag.values():
+        if field.discriminator_id:
+            try:
+                orchestration.fields_by_tag[int(field.discriminator_id)]
+            except KeyError:
+                field_errors.append('field id={} has discriminatorId={} but there is no field defined with id={}'.format(field.id, field.discriminator_id, field.discriminator_id))
         try:
             data_type = orchestration.data_types[field.type]
             if data_type.base_type != None:
                 try:
-                    base_type = orchestration.data_types[data_type.base_type]
+                    orchestration.data_types[data_type.base_type]
                 except KeyError:
                     data_type_errors.append('data type {} has base type {} but there is no such data type defined'.format(data_type.name, data_type.base_type))
         except KeyError:
             try:
                 code_set = orchestration.code_sets[field.type]
             except KeyError:
-                data_type_errors.append('field tag={} has type={} but there is no such data type or code set defined'.format(field.id, field.type))
+                data_type_errors.append('field id={} has type={} but there is no such data type or code set defined'.format(field.id, field.type))
     for message in orchestration.messages.values():
         visit_orchestration_references(orchestration, message.references, 'message MsgType={}'.format(message.msg_type), field_errors, group_errors, component_errors)
     

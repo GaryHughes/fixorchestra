@@ -101,12 +101,13 @@ class Field:
     # This class needs to be kept in sync with repository.Field because fixaudit.py stores 
     # nstances of these classes in Sets. Specifically both implementations have to be hashable 
     # and they have to be hashing the same thing.
-    def __init__(self, id, name, type, synopsis, pedigree):
+    def __init__(self, id, name, type, synopsis, pedigree, discriminator_id):
         self.id = id
         self.name = name
         self.type = type
         self.synopsis = synopsis
         self.pedigree = pedigree
+        self.discriminator_id = discriminator_id
 
     def __hash__(self):
         return hash(self.id)
@@ -322,7 +323,8 @@ class Orchestration:
                 fieldElement.get('name'),
                 fieldElement.get('type'),
                 self.extract_synopsis(fieldElement),
-                self.extract_pedigree(fieldElement)
+                self.extract_pedigree(fieldElement),
+                fieldElement.get('discriminatorId')
             )
             self.fields_by_tag[field.id] = field
             self.fields_by_name[field.name.lower()] = field
@@ -707,6 +709,7 @@ def dump_field(orchestration, tag_or_name):
     print("    Id    = " + str(field.id))
     print("    Type  = " + field.type)
     print("    Pedigree = " + str(field.pedigree))
+    print("    DiscriminatorId = " + str(field.discriminator_id))
     print("    (" + field.synopsis + ")")
     try:
         code_set = orchestration.code_sets[field.type]
