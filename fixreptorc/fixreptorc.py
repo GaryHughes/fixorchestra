@@ -83,9 +83,16 @@ def main():
     # fields
     for source in repository.fields_by_tag.values():
         type = source.type
+        discriminator_id = None
         if source.id in repository.enums:
             type = source.name + 'CodeSet'
-        target = orc.Field(source.id, source.name, type, source.description, source.pedigree)
+        discriminator_field_name = source.name + 'Source'
+        try:
+            discriminator_field = repository.fields_by_name[discriminator_field_name.lower()]
+            discriminator_id = discriminator_field.id
+        except KeyError:
+            pass    
+        target = orc.Field(source.id, source.name, type, source.description, source.pedigree, discriminator_id)
         orchestration.fields_by_tag[target.id] = target
         orchestration.fields_by_name[target.name] = target
 

@@ -547,6 +547,8 @@ class Orchestration:
         for source in self.fields_by_tag.values():
             # TODO abbrName
             field = ET.SubElement(fields, '{%s}field' % (fixr_namespace), id=str(source.id), name=source.name, type=source.type)
+            if source.discriminator_id:
+                field.attrib["discriminatorId"] = str(source.discriminator_id)
             self.populate_xml_pedigree(field, source.pedigree)
             annotation = ET.SubElement(field, '{%s}annotation' % (fixr_namespace))
             if source.synopsis:
