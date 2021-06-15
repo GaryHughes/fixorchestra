@@ -102,14 +102,14 @@ def validate_repository(repository):
     data_type_errors = []
     for field in repository.fields_by_tag.values():
         try:
-            data_type = repository.data_types[field.type]
+            data_type = repository.data_types[field.type_]
             if data_type.base_type != None:
                 try:
                     base_type = repository.data_types[data_type.base_type]
                 except KeyError:
                     data_type_errors.append('data type {} has base type {} but there is no such data type defined'.format(data_type.name, data_type.base_type))
         except KeyError:
-            data_type_errors.append('field tag={} has type={} but there is no such data type defined'.format(field.id, field.type))
+            data_type_errors.append('field tag={} has type={} but there is no such data type defined'.format(field.id_, field.type_))
     if len(data_type_errors) == 0:
         print('All data types referenced by fields are defined')
     else:
@@ -127,13 +127,13 @@ def visit_orchestration_references(orchestration, references, context, field_err
         if reference.group_id:
             try:
                 group = orchestration.groups[reference.group_id]
-                visit_orchestration_references(orchestration, group.references, context + ' references group id={}'.format(group.id), field_errors, group_errors, component_errors)
+                visit_orchestration_references(orchestration, group.references, context + ' references group id={}'.format(group.id_), field_errors, group_errors, component_errors)
             except KeyError:
                 group_errors.append('{} that references group id={} that is not defined'.format(context, reference.group_id))
         if reference.component_id:
             try:
                 component = orchestration.components[reference.component_id]
-                visit_orchestration_references(orchestration, component.references, context + 'references component id={}'.format(component.id), field_errors, group_errors, component_errors)
+                visit_orchestration_references(orchestration, component.references, context + 'references component id={}'.format(component.id_), field_errors, group_errors, component_errors)
             except KeyError:
                 component_errors.append('{} that references component id={} that is not defined'.format(context, reference.component_id))
        
@@ -147,7 +147,7 @@ def validate_orchestration(orchestration):
     component_errors = []
     for field in orchestration.fields_by_tag.values():
         try:
-            data_type = orchestration.data_types[field.type]
+            data_type = orchestration.data_types[field.type_]
             if data_type.base_type != None:
                 try:
                     base_type = orchestration.data_types[data_type.base_type]
@@ -155,9 +155,9 @@ def validate_orchestration(orchestration):
                     data_type_errors.append('data type {} has base type {} but there is no such data type defined'.format(data_type.name, data_type.base_type))
         except KeyError:
             try:
-                code_set = orchestration.code_sets[field.type]
+                code_set = orchestration.code_sets[field.type_]
             except KeyError:
-                data_type_errors.append('field tag={} has type={} but there is no such data type or code set defined'.format(field.id, field.type))
+                data_type_errors.append('field tag={} has type={} but there is no such data type or code set defined'.format(field.id_, field.type_))
     for message in orchestration.messages.values():
         visit_orchestration_references(orchestration, message.references, 'message MsgType={}'.format(message.msg_type), field_errors, group_errors, component_errors)
     

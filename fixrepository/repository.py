@@ -56,8 +56,8 @@ class Enum:
     # This class needs to be kept in sync with orchestra.Code because fixaudit.py stores 
     # instances of these classes in Sets. Specifically both implementations have to be hashable 
     # and they have to be hashing the same thing.
-    def __init__(self, id, value, symbolic_name, description, pedigree):
-        self.id = id
+    def __init__(self, id_, value, symbolic_name, description, pedigree):
+        self.id_ = id_
         self.value = value
         self.symbolic_name = symbolic_name
         self.description = description
@@ -74,18 +74,18 @@ class Field:
     # This class needs to be kept in sync with orchestra.Field because fixaudit.py stores 
     # nstances of these classes in Sets. Specifically both implementations have to be hashable 
     # and they have to be hashing the same thing.
-    def __init__(self, id, name, type, description, pedigree):
-        self.id = id
+    def __init__(self, id_, name, type_, description, pedigree):
+        self.id_ = id_
         self.name = name
-        self.type = type
+        self.type_ = type_
         self.description = description
         self.pedigree = pedigree
     
     def __hash__(self):
-        return hash(self.id)
+        return hash(self.id_)
 
     def __eq__(self, rhs):
-        return self.id == rhs.id
+        return self.id_ == rhs.id_
 
 class Component:
 
@@ -132,8 +132,8 @@ class MessageField:
 
 class Repository:
 
-    enums = {}                  # Enum.id -> [Enum]
-    fields_by_tag = {}          # Field.id -> Field
+    enums = {}                  # Enum.id_ -> [Enum]
+    fields_by_tag = {}          # Field.id_ -> Field
     fields_by_name = {}         # Field.name.lower() -> Field
     data_types = {}             # DataType.name -> DataType
     components = {}             # Component.Name -> Component
@@ -244,9 +244,9 @@ class Repository:
                 self.extract_pedigree(enumElement)
             )
             try:
-                self.enums[enum.id].append(enum)
+                self.enums[enum.id_].append(enum)
             except KeyError:
-                self.enums[enum.id] = [enum]
+                self.enums[enum.id_] = [enum]
         
 
     def load_fields(self, directory):
@@ -269,7 +269,7 @@ class Repository:
                 fieldElement.find('Description').text,
                 self.extract_pedigree(fieldElement)
             )
-            self.fields_by_tag[field.id] = field
+            self.fields_by_tag[field.id_] = field
             self.fields_by_name[field.name.lower()] = field
 
     def load_messages(self, directory):
@@ -346,8 +346,8 @@ class Repository:
             contents = self.msg_contents[componentID]
             for content in contents:
                 try:
-                    id = int(content.tagText)
-                    field = self.fields_by_tag[id]
+                    id_ = int(content.tagText)
+                    field = self.fields_by_tag[id_]
                     fields.append(MessageField(field, content.reqd, depth)) 
                 except ValueError:
                     component = self.components[content.tagText]
@@ -363,7 +363,7 @@ class Repository:
 
     def field_values(self, field):
         try:
-            return self.enums[field.id]
+            return self.enums[field.id_]
         except KeyError:
             return []   
 
@@ -381,23 +381,23 @@ class Repository:
         #
         for field in self.fields_by_tag.values():
             try:
-                data_type = self.data_types[field.type]
+                data_type = self.data_types[field.type_]
             except KeyError:
-                if field.type == 'Length':
+                if field.type_ == 'Length':
                     sys.stderr.writelines('Defining missing data type Length\n')
                     data_type = DataType('Length', 'int', 'int field representing the length in bytes. Value must be positive.', Pedigree('FIX.4.3', '', '', '', '', ''))
-                elif field.type == 'MultipleValueString':
+                elif field.type_ == 'MultipleValueString':
                     sys.stderr.writelines('Renaming data type MultipleValueString -> MultipleStringValue\n')
-                    field.type = 'MultipleStringValue'
+                    field.type_ = 'MultipleStringValue'
                     continue
-                elif field.type == 'Boolean':
+                elif field.type_ == 'Boolean':
                     sys.stderr.writelines('Definiing missing data type Boolean\n')
                     data_type = DataType('Boolean', 'char', "char field containing one of two values: 'Y' = True/Yes 'N' = False/No", Pedigree('FIX.4.2', '', '', '', '', ''))
-                elif field.type == 'DayOfMonth':
+                elif field.type_ == 'DayOfMonth':
                     sys.stderr.writelines('Defining missing data type DayOfMonth\n')
                     data_type = DataType('DayOfMonth', 'int', 'int field representing a day during a particular monthy (values 1 to 31).', Pedigree('FIX.4.1', '', '', '', '', ''))
                 else:
-                    raise Exception("Found a undefined data type '{}' that I dont know how to fix".format(field.type))
+                    raise Exception("Found a undefined data type '{}' that I dont know how to fix".format(field.type_))
                 self.data_types[data_type.name] = data_type
 
 
@@ -412,12 +412,12 @@ def dump_field(repository, tag_or_name):
             print("Could not find a field with Tag or Name = '{}'".format(tag_or_name))
             return
     print(field.name + " {")
-    print("    Id   = " + str(field.id))
-    print("    Type  = " + field.type)
+    print("    Id   = " + str(field.id_))
+    print("    Type  = " + field.type_)
     print("    Pedigree = " + str(field.pedigree))
     print("    (" + field.description + ")")
     try:
-        enums = repository.enums[field.id]
+        enums = repository.enums[field.id_]
         print("    Values {")
         for enum in enums:
             print("        {} ({}, Pedigree = {}, {})".format(enum.value, enum.symbolic_name, str(enum.pedigree), enum.description))
@@ -433,9 +433,9 @@ def dump_message_contents(repository, componentID, depth):
         contents = repository.msg_contents[componentID]
         for content in contents:
             try:
-                id = int(content.tagText)
-                field = repository.fields_by_tag[id]
-                print(padding + '{} (Id = {}, Type = {}, Pedigree = {}, Required = {})'.format(field.name, field.id, field.type, str(field.pedigree), content.reqd))
+                id_ = int(content.tagText)
+                field = repository.fields_by_tag[id_]
+                print(padding + '{} (Id = {}, Type = {}, Pedigree = {}, Required = {})'.format(field.name, field.id_, field.type_, str(field.pedigree), content.reqd))
             except ValueError:
                 component = repository.components[content.tagText]
                 print(padding + '{} {{'.format(component.name))
@@ -475,14 +475,14 @@ def list_messages(repository):
 
 def list_fields(repository):
     for field in repository.fields_by_tag.values():
-        print('{}\t{} ({})'.format(field.id, field.name, field.type))
+        print('{}\t{} ({})'.format(field.id_, field.name, field.type_))
 
 
 def list_enumerated_fields(repository):
     for field in repository.fields_by_tag.values():
         try:
-            enum = repository.enums[field.id]
-            print('{}\t{} ({})'.format(field.id, field.name, field.type))
+            enum = repository.enums[field.id_]
+            print('{}\t{} ({})'.format(field.id_, field.name, field.type_))
         except KeyError:
             pass
 
