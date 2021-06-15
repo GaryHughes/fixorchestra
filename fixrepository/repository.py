@@ -432,11 +432,11 @@ def dump_message_contents(repository, componentID, depth):
     try:
         contents = repository.msg_contents[componentID]
         for content in contents:
-            try:
+            if content.tagText.isnumeric():
                 id = int(content.tagText)
                 field = repository.fields_by_tag[id]
                 print(padding + '{} (Id = {}, Type = {}, Pedigree = {}, Required = {})'.format(field.name, field.id, field.type, str(field.pedigree), content.reqd))
-            except ValueError:
+            else:
                 component = repository.components[content.tagText]
                 print(padding + '{} {{'.format(component.name))
                 dump_message_contents(repository, component.componentID, depth + 1)
