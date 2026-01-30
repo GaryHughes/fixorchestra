@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fixorchestra"
+version = "0.0.2"
+description = "Explore, manipulate, compare, and convert fixtrading.org orchestrations and repositories."
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "MIT"}
+authors = [
+    {name = "Gary Hughes", email = "garyedwardhughes@gmail.com"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/GaryHughes/fixorchestra"
+
+[project.scripts]
+fixorchestration = "fixorchestra.orchestration:main"
+fixaudit = "fixaudit.fixaudit:main"
+fixreptorc = "fixreptorc.fixreptorc:main"
+fixrepository = "fixrepository.repository:main"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov",
+]
+
+[tool.setuptools.packages.find]
+# Automatically find packages
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
